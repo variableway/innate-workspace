@@ -19,7 +19,7 @@ def find_registry() -> Path | None:
 
 def parse_registry(path: Path) -> list[dict]:
     suffix = path.suffix.lower()
-    text = path.read_text()
+    text = path.read_text(encoding="utf-8")
 
     if suffix in (".yaml", ".yml"):
         try:
