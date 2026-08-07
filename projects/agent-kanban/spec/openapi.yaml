@@ -1,0 +1,893 @@
+openapi: "3.0.3"
+info:
+  title: Agent Kanban API
+  description: |
+    多项目 AI Agent 统一看板的 REST API。
+    
+    核心资源：Workspace → Project → Task → Assignment → Agent
+    
+    注意：Task 的创建/更新/关闭以 GitHub Issues 为准，本 API 提供只读聚合查询。
+    Assignment 的创建和管理通过本 API。
+  version: "1.0.0"
+  contact:
+    name: Agent Kanban Team
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: 本地开发服务器
+
+tags:
+  - name: Workspaces
+    description: 工作空间管理
+  - name: Projects
+    description: 项目管理（GitHub Repo 映射）
+  - name: Tasks
+    description: 任务查询（GitHub Issue 聚合视图）
+  - name: Agents
+    description: AI Agent 管理
+  - name: Assignments
+    description: 任务分配记录
+
+paths:
+  # ═══════════════════════════════════════════════
+  # Workspaces
+  # ═══════════════════════════════════════════════
+  /workspaces:
+    get:
+      tags: [Workspaces]
+      summary: 获取所有工作空间
+      operationId: listWorkspaces
+      responses:
+        "200":
+          description: 工作空间列表
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Workspace"
+    post:
+      tags: [Workspaces]
+      summary: 创建工作空间
+      operationId: createWorkspace
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateWorkspaceInput"
+      responses:
+        "201":
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Workspace"
+
+  /workspaces/{workspaceId}:
+    get:
+      tags: [Workspaces]
+      summary: 获取工作空间详情
+      operationId: getWorkspace
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 工作空间详情
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkspaceDetail"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags: [Workspaces]
+      summary: 删除工作空间
+      operationId: deleteWorkspace
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: 删除成功
+
+  # ═══════════════════════════════════════════════
+  # Projects
+  # ═══════════════════════════════════════════════
+  /workspaces/{workspaceId}/projects:
+    get:
+      tags: [Projects]
+      summary: 获取工作空间下的所有项目
+      operationId: listProjects
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 项目列表
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Project"
+    post:
+      tags: [Projects]
+      summary: 添加项目（关联 GitHub Repo）
+      operationId: addProject
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProjectInput"
+      responses:
+        "201":
+          description: 添加成功，返回项目详情和 webhook 配置指引
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectWithWebhook"
+
+  /projects/{projectId}:
+    get:
+      tags: [Projects]
+      summary: 获取项目详情
+      operationId: getProject
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 项目详情
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectDetail"
+    delete:
+      tags: [Projects]
+      summary: 移除项目
+      operationId: removeProject
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: 移除成功
+
+  /projects/{projectId}/sync:
+    post:
+      tags: [Projects]
+      summary: 手动触发项目同步
+      operationId: triggerSync
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "202":
+          description: 同步已触发
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SyncStatus"
+
+  # ═══════════════════════════════════════════════
+  # Tasks (read-only aggregation)
+  # ═══════════════════════════════════════════════
+  /workspaces/{workspaceId}/tasks:
+    get:
+      tags: [Tasks]
+      summary: 获取工作空间的所有任务（跨项目聚合）
+      operationId: listTasks
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: 按状态筛选
+          schema:
+            type: string
+            enum: [open, in_progress, closed]
+        - name: projectId
+          in: query
+          description: 按项目筛选
+          schema:
+            type: string
+        - name: agentId
+          in: query
+          description: 按分配的 Agent 筛选
+          schema:
+            type: string
+        - name: label
+          in: query
+          description: 按 GitHub Label 筛选
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: 任务列表（聚合视图）
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/TaskWithAssignment"
+
+  /tasks/{taskId}:
+    get:
+      tags: [Tasks]
+      summary: 获取单个任务详情
+      operationId: getTask
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 任务详情
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskDetail"
+
+  # ═══════════════════════════════════════════════
+  # Agents
+  # ═══════════════════════════════════════════════
+  /workspaces/{workspaceId}/agents:
+    get:
+      tags: [Agents]
+      summary: 获取工作空间的所有 Agent
+      operationId: listAgents
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Agent 列表
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Agent"
+    post:
+      tags: [Agents]
+      summary: 注册新 Agent
+      operationId: createAgent
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAgentInput"
+      responses:
+        "201":
+          description: 注册成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Agent"
+
+  /agents/{agentId}:
+    get:
+      tags: [Agents]
+      summary: 获取 Agent 详情
+      operationId: getAgent
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Agent 详情（含统计数据）
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentDetail"
+    patch:
+      tags: [Agents]
+      summary: 更新 Agent 配置
+      operationId: updateAgent
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAgentInput"
+      responses:
+        "200":
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Agent"
+    delete:
+      tags: [Agents]
+      summary: 移除 Agent
+      operationId: deleteAgent
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: 移除成功
+
+  # ═══════════════════════════════════════════════
+  # Assignments
+  # ═══════════════════════════════════════════════
+  /assignments:
+    post:
+      tags: [Assignments]
+      summary: 创建任务分配（手动分配 Agent 给任务）
+      operationId: createAssignment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAssignmentInput"
+      responses:
+        "201":
+          description: 分配创建成功，Agent 将在下次轮询时拾取
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Assignment"
+
+  /tasks/{taskId}/assignments:
+    get:
+      tags: [Assignments]
+      summary: 获取任务的所有分配记录
+      operationId: listTaskAssignments
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 分配记录列表
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Assignment"
+
+  /agents/{agentId}/assignments:
+    get:
+      tags: [Assignments]
+      summary: 获取 Agent 的所有分配记录
+      operationId: listAgentAssignments
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, running, done, failed]
+      responses:
+        "200":
+          description: 分配记录列表
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Assignment"
+
+  # ═══════════════════════════════════════════════
+  # Webhooks
+  # ═══════════════════════════════════════════════
+  /webhooks/github:
+    post:
+      tags: [Tasks]
+      summary: GitHub Webhook 接收端点
+      description: |
+        接收 GitHub 的 issue events webhook。
+        支持的事件：issues.opened, issues.closed, issues.reopened, issues.labeled, issues.unlabeled, issues.assigned, issues.edited
+      operationId: receiveGitHubWebhook
+      parameters:
+        - name: X-Hub-Signature-256
+          in: header
+          required: true
+          description: GitHub webhook HMAC-SHA256 签名
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Webhook 处理成功
+        "401":
+          description: 签名验证失败
+
+  # ═══════════════════════════════════════════════
+  # Dashboard / Stats
+  # ═══════════════════════════════════════════════
+  /workspaces/{workspaceId}/stats:
+    get:
+      tags: [Workspaces]
+      summary: 获取工作空间统计概览
+      operationId: getWorkspaceStats
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 统计数据
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkspaceStats"
+
+# ═══════════════════════════════════════════════════
+# Components
+# ═══════════════════════════════════════════════════
+components:
+  responses:
+    NotFound:
+      description: 资源不存在
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+  schemas:
+    # ── Error ──
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          example: "NOT_FOUND"
+        message:
+          type: string
+          example: "Workspace not found"
+
+    # ── Workspace ──
+    Workspace:
+      type: object
+      required: [id, name, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        name:
+          type: string
+          example: "我的产品团队"
+        description:
+          type: string
+          example: "负责所有产品线的前后端开发"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateWorkspaceInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 500
+
+    WorkspaceDetail:
+      allOf:
+        - $ref: "#/components/schemas/Workspace"
+        - type: object
+          properties:
+            projects:
+              type: array
+              items:
+                $ref: "#/components/schemas/Project"
+            agents:
+              type: array
+              items:
+                $ref: "#/components/schemas/Agent"
+
+    WorkspaceStats:
+      type: object
+      properties:
+        totalTasks:
+          type: integer
+          description: 总任务数
+        openTasks:
+          type: integer
+        inProgressTasks:
+          type: integer
+        closedTasks:
+          type: integer
+        totalAgents:
+          type: integer
+        activeAgents:
+          type: integer
+        totalProjects:
+          type: integer
+        tasksByProject:
+          type: object
+          additionalProperties:
+            type: integer
+        tasksByAgent:
+          type: object
+          additionalProperties:
+            type: integer
+
+    # ── Project ──
+    Project:
+      type: object
+      required: [id, workspaceId, name, repoOwner, repoName, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        workspaceId:
+          type: string
+        name:
+          type: string
+          example: "前端项目"
+        repoOwner:
+          type: string
+          example: "my-org"
+        repoName:
+          type: string
+          example: "frontend-app"
+        syncStatus:
+          type: string
+          enum: [idle, syncing, error]
+          default: idle
+        lastSyncedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateProjectInput:
+      type: object
+      required: [name, repoOwner, repoName]
+      properties:
+        name:
+          type: string
+        repoOwner:
+          type: string
+          description: GitHub 组织或用户名
+        repoName:
+          type: string
+          description: GitHub 仓库名
+
+    ProjectWithWebhook:
+      allOf:
+        - $ref: "#/components/schemas/Project"
+        - type: object
+          properties:
+            webhookUrl:
+              type: string
+              description: 需要在 GitHub Repo Settings 中配置的 webhook URL
+            webhookSecret:
+              type: string
+              description: Webhook secret（仅返回一次，请妥善保存）
+
+    ProjectDetail:
+      allOf:
+        - $ref: "#/components/schemas/Project"
+        - type: object
+          properties:
+            taskCount:
+              type: integer
+
+    SyncStatus:
+      type: object
+      properties:
+        projectId:
+          type: string
+        status:
+          type: string
+          enum: [queued, running, completed, failed]
+        message:
+          type: string
+
+    # ── Task ──
+    Task:
+      type: object
+      required: [id, projectId, issueNumber, title, status, labels]
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+        issueNumber:
+          type: integer
+          example: 42
+        title:
+          type: string
+          example: "实现用户登录页面"
+        body:
+          type: string
+        labels:
+          type: array
+          items:
+            type: string
+          example: ["frontend", "bug"]
+        status:
+          type: string
+          enum: [open, in_progress, closed]
+        githubAssignee:
+          type: string
+          nullable: true
+        githubUrl:
+          type: string
+          format: uri
+          example: "https://github.com/my-org/frontend-app/issues/42"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    TaskWithAssignment:
+      allOf:
+        - $ref: "#/components/schemas/Task"
+        - type: object
+          properties:
+            currentAssignment:
+              $ref: "#/components/schemas/Assignment"
+              nullable: true
+
+    TaskDetail:
+      allOf:
+        - $ref: "#/components/schemas/TaskWithAssignment"
+        - type: object
+          properties:
+            assignments:
+              type: array
+              items:
+                $ref: "#/components/schemas/Assignment"
+            project:
+              $ref: "#/components/schemas/Project"
+
+    # ── Agent ──
+    Agent:
+      type: object
+      required: [id, workspaceId, name, role, modelName, capabilityTags]
+      properties:
+        id:
+          type: string
+          format: uuid
+        workspaceId:
+          type: string
+        name:
+          type: string
+          example: "前端开发专家"
+        role:
+          type: string
+          description: Agent 角色定位
+          example: "frontend"
+        description:
+          type: string
+          example: "负责 React/Vue 前端开发，组件库、样式、页面交互"
+        modelName:
+          type: string
+          description: 绑定的 AI 模型名称
+          example: "kimi-long-v1"
+        capabilityTags:
+          type: array
+          items:
+            type: string
+          description: 匹配 GitHub Labels 的能力标签
+          example: ["frontend", "ui", "component"]
+        skills:
+          type: array
+          items:
+            type: string
+          description: 关联的 Skill 列表
+          example: ["react-component", "tailwind-css", "jest-test"]
+        githubBotAccount:
+          type: string
+          description: 对应的 GitHub Bot 账号
+          example: "agent-frontend-bot"
+        status:
+          type: string
+          enum: [active, paused, offline]
+          default: active
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateAgentInput:
+      type: object
+      required: [name, role, modelName, capabilityTags]
+      properties:
+        name:
+          type: string
+        role:
+          type: string
+        description:
+          type: string
+        modelName:
+          type: string
+        capabilityTags:
+          type: array
+          items:
+            type: string
+        skills:
+          type: array
+          items:
+            type: string
+        githubBotAccount:
+          type: string
+
+    UpdateAgentInput:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        modelName:
+          type: string
+        capabilityTags:
+          type: array
+          items:
+            type: string
+        skills:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [active, paused, offline]
+
+    AgentDetail:
+      allOf:
+        - $ref: "#/components/schemas/Agent"
+        - type: object
+          properties:
+            stats:
+              type: object
+              properties:
+                totalAssignments:
+                  type: integer
+                completedAssignments:
+                  type: integer
+                failedAssignments:
+                  type: integer
+                avgDurationMs:
+                  type: integer
+                  description: 平均执行时长（毫秒）
+
+    # ── Assignment ──
+    Assignment:
+      type: object
+      required: [id, taskId, agentId, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        taskId:
+          type: string
+        agentId:
+          type: string
+        status:
+          type: string
+          enum: [pending, running, done, failed]
+        modelUsed:
+          type: string
+          description: 实际使用的模型
+          example: "kimi-long-v1"
+        resultSummary:
+          type: string
+          description: Agent 执行结果摘要
+        githubCommentId:
+          type: integer
+          description: 回写 GitHub Issue 的 comment ID
+        assignedAt:
+          type: string
+          format: date-time
+        startedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+        agent:
+          $ref: "#/components/schemas/Agent"
+
+    CreateAssignmentInput:
+      type: object
+      required: [taskId, agentId]
+      properties:
+        taskId:
+          type: string
+        agentId:
+          type: string
+        instruction:
+          type: string
+          description: 可选的任务指令覆盖

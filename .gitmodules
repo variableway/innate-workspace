@@ -1,0 +1,3 @@
+[submodule "desktop-ref/tolaria"]
+	path = desktop-ref/tolaria
+	url = https://github.com/refactoringhq/tolaria.git
