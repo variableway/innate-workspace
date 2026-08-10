@@ -1,0 +1,135 @@
+version: "3"
+
+# Root Taskfile — build and run all components
+
+tasks:
+  default:
+    desc: Show available tasks
+    cmds:
+      - task --list
+
+  # ── Build ──────────────────────────────────────────────────
+
+  build:go:
+    desc: Build Go backend
+    dir: backend-go
+    cmds:
+      - task build
+
+  build:node:
+    desc: Build Node.js backend
+    dir: backend-node
+    cmds:
+      - task build
+
+  build:frontend:
+    desc: Build frontend
+    dir: frontend
+    cmds:
+      - task build
+
+  build:
+    desc: Build everything (Go + Node + Frontend)
+    deps: [build:go, build:node, build:frontend]
+
+  # ── Dev (single component) ────────────────────────────────
+
+  dev:go:
+    desc: Run Go backend (port 8080)
+    dir: backend-go
+    cmds:
+      - task run
+
+  dev:node:
+    desc: Run Node.js backend (port 4001)
+    dir: backend-node
+    cmds:
+      - task dev
+
+  dev:frontend:
+    desc: Run frontend dev server (port 5173)
+    dir: frontend
+    cmds:
+      - task dev
+
+  # ── Dev:all (start everything) ────────────────────────────
+
+  dev:all:node:
+    desc: Start Node backend + frontend together
+    deps: [dev:node, dev:frontend]
+
+  dev:all:go:
+    desc: Start Go backend + frontend together
+    deps: [dev:go, dev:frontend]
+
+  dev:all:
+    desc: Start all three (Go + Node + Frontend)
+    deps: [dev:go, dev:node, dev:frontend]
+
+  # ── Install ───────────────────────────────────────────────
+
+  install:frontend:
+    desc: Install frontend workspace dependencies (pnpm)
+    dir: .
+    cmds:
+      - pnpm install
+
+  install:node:
+    desc: Install Node.js backend dependencies
+    dir: backend-node
+    cmds:
+      - task install
+
+  install:
+    desc: Install all dependencies
+    deps: [install:frontend]
+
+  # ── Type-check ────────────────────────────────────────────
+
+  typecheck:node:
+    desc: Type-check Node.js backend
+    dir: backend-node
+    cmds:
+      - task typecheck
+
+  # ── Test ──────────────────────────────────────────────────
+
+  test:go:
+    desc: Test Go backend
+    dir: backend-go
+    cmds:
+      - task test
+
+  test:node:
+    desc: Test Node.js backend
+    dir: backend-node
+    cmds:
+      - task test
+
+  test:
+    desc: Test both backends
+    deps: [test:go, test:node]
+
+  # ── Clean ─────────────────────────────────────────────────
+
+  clean:go:
+    desc: Clean Go backend
+    dir: backend-go
+    cmds:
+      - task clean
+
+  clean:node:
+    desc: Clean Node.js backend
+    dir: backend-node
+    cmds:
+      - task clean
+
+  clean:frontend:
+    desc: Clean frontend
+    dir: frontend
+    cmds:
+      - task clean
+
+  clean:
+    desc: Clean everything
+    deps: [clean:go, clean:node, clean:frontend]

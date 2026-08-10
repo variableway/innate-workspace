@@ -1,0 +1,119 @@
+# Task 状态机定义（4 列看板）
+# 对应数据库表: kanban_task.status
+# 双后端 (Go + Node.js) 都基于此 YAML 实现状态流转逻辑
+
+entity: Task
+table: kanban_task
+field: status
+initial: backlog
+
+# 看板列与 WIP（在制品上限，硬阻断）
+columns:
+  - id: backlog
+    title: 待规划
+  - id: in_progress
+    title: 进行中
+    wip_limit: 5
+  - id: in_review
+    title: 待审核
+    wip_limit: 3
+  - id: done
+    title: 已完成
+
+states:
+  backlog:
+    description: "待规划：Issue 打开且尚未进入执行"
+    color: "#6b7280"     # gray
+
+  in_progress:
+    description: "进行中：Agent 或人工已拾取任务"
+    color: "#3b82f6"     # blue
+
+  in_review:
+    description: "待审核：Agent 已完成，等待人工确认"
+    color: "#f59e0b"     # amber
+
+  done:
+    description: "已完成：Issue 关闭或看板确认完成"
+    color: "#10b981"     # green
+    terminal: true
+
+# 拖拽 / PATCH 允许的白名单流转
+allowed_transitions:
+  backlog: [in_progress]
+  in_progress: [backlog, in_review, done]
+  in_review: [in_progress, done]
+  done: [in_progress]
+
+transitions:
+  - name: agent_pickup
+    from: backlog
+    to: in_progress
+    event: assignment.started
+    guard: "assignment.status == 'running'"
+    action: |
+      UPDATE kanban_task SET status = 'in_progress', updated_at = datetime('now')
+      WHERE id = :task_id
+    description: "Agent 开始执行任务时触发"
+
+  - name: agent_complete
+    from: in_progress
+    to: in_review
+    event: assignment.completed
+    guard: "assignment.status == 'done'"
+    action: |
+      UPDATE kanban_task SET status = 'in_review', updated_at = datetime('now')
+      WHERE id = :task_id
+    description: "Agent 成功完成 → 待审核（非直接 done）"
+
+  - name: board_move
+    from: "*"
+    to: "*"
+    event: task.patch_status
+    guard: "allowed_transitions[from] includes to AND wip not exceeded"
+    description: "看板拖拽 PATCH /tasks/{id}；成功后写回 GitHub status:* label"
+
+  - name: github_close
+    from: [backlog, in_progress, in_review]
+    to: done
+    event: issue.closed
+    guard: "github_event.action == 'closed'"
+    action: |
+      UPDATE kanban_task SET status = 'done', updated_at = datetime('now')
+      WHERE id = :task_id
+    description: "GitHub Issue 关闭 → done"
+
+  - name: github_reopen
+    from: done
+    to: backlog
+    event: issue.reopened
+    guard: "github_event.action == 'reopened'"
+    action: |
+      UPDATE kanban_task SET status = 'backlog', updated_at = datetime('now')
+      WHERE id = :task_id
+    description: "GitHub Issue 重新打开 → backlog（再经 sync 优先级栈细化）"
+
+# ═══════════════════════════════════════════════════
+# GitHub 同步状态解析优先级（1+2+3 合并）
+# ═══════════════════════════════════════════════════
+# 识别的 status label（冲突时按字典序取第一个）:
+#   status:backlog | status:in-progress | status:in-review | status:done
+#
+# 解析顺序:
+#   1. GitHub state == closed            → done
+#   2. 存在 status:* label               → 对应列（label 驱动）
+#   3. 无 label + 有 running assignment  → in_progress（简单映射）
+#   4. 无 label + open + 本地已是
+#      in_progress / in_review           → 保留本地（本地为主）
+#   5. 否则                              → backlog
+#
+# 看板 PATCH 成功后写回/替换 GitHub status:* label；无 token 时跳过写回不阻断。
+
+# 非法状态转换 / WIP 超限返回 409 Conflict。前端看板拖拽触发 board_move (PATCH)。
+
+# Sync status resolution unit-test cases (both backends):
+#   SYNC-001 closed issue → done
+#   SYNC-002 open + status:in-review label → in_review
+#   SYNC-003 open + no label + running assignment → in_progress
+#   SYNC-004 open + no label + local in_review → keep in_review
+#   SYNC-005 open + no label + new task → backlog

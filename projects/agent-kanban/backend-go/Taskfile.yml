@@ -1,0 +1,79 @@
+version: "3"
+
+vars:
+  BIN: bin/kanban-api
+  DB_PATH: dev.db
+
+tasks:
+  default:
+    desc: Show available tasks
+    cmds:
+      - task --list
+
+  dev:
+    desc: Run with hot reload (requires air)
+    cmds:
+      - air
+
+  build:
+    desc: Build the Go binary
+    cmds:
+      - go build -o {{.BIN}} ./cmd/kanban-api
+    sources:
+      - cmd/**/*.go
+      - internal/**/*.go
+      - go.mod
+    generates:
+      - "{{.BIN}}"
+
+  run:
+    desc: Run without building
+    cmds:
+      - go run ./cmd/kanban-api
+
+  test:
+    desc: Run tests
+    cmds:
+      - go test ./... -v
+
+  tidy:
+    desc: Tidy dependencies
+    cmds:
+      - go mod tidy
+
+  fmt:
+    desc: Format code
+    cmds:
+      - go fmt ./...
+
+  lint:
+    desc: Lint code
+    cmds:
+      - go vet ./...
+
+  build-linux:
+    desc: Cross-compile for Linux amd64 (no CGO)
+    cmds:
+      - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o {{.BIN}}-linux ./cmd/kanban-api
+
+  clean:
+    desc: Clean build artifacts
+    cmds:
+      - rm -rf bin/ {{.DB_PATH}} {{.DB_PATH}}-wal {{.DB_PATH}}-shm
+
+  migrate-up:
+    desc: Run database migrations (requires golang-migrate)
+    cmds:
+      - migrate -path migrations/ -database "sqlite3://{{.DB_PATH}}" up
+
+  migrate-down:
+    desc: Rollback database migrations
+    cmds:
+      - migrate -path migrations/ -database "sqlite3://{{.DB_PATH}}" down
+
+  all:
+    desc: Build + test + lint
+    deps: [build]
+    cmds:
+      - task: test
+      - task: lint

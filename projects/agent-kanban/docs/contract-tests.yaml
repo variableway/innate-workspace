@@ -1,0 +1,483 @@
+# Agent Kanban — Contract Test Cases
+# 两个后端 (Go + Node.js) 必须通过的测试用例
+# 基于 docs/openapi.yaml 的 API 契约
+#
+# 运行方式:
+#   Go:      go test ./internal/handler/... -run Contract
+#   Node.js: vitest run src/contract.test.ts
+#
+# 每个测试用例独立运行，按顺序执行 setup → request → assert → cleanup
+
+# ═══════════════════════════════════════════════════
+# Workspace API
+# ═══════════════════════════════════════════════════
+tests:
+  - id: WS-001
+    name: "创建 workspace"
+    method: POST
+    path: /api/v1/workspaces
+    request:
+      body:
+        name: "测试工作空间"
+        description: "用于契约测试"
+    response:
+      status: 201
+      body:
+        name: "测试工作空间"
+        description: "用于契约测试"
+        id: "@string"           # 类型检查：必须是 string
+        createdAt: "@string"
+        updatedAt: "@string"
+    save:                        # 保存响应字段供后续测试用
+      workspaceId: "$.id"
+
+  - id: WS-002
+    name: "获取 workspace 列表"
+    method: GET
+    path: /api/v1/workspaces
+    response:
+      status: 200
+      body: "@array"
+      body_min_length: 1
+
+  - id: WS-003
+    name: "获取单个 workspace"
+    method: GET
+    path: /api/v1/workspaces/{workspaceId}
+    response:
+      status: 200
+      body:
+        id: "{workspaceId}"
+        name: "@string"
+
+  - id: WS-004
+    name: "获取不存在的 workspace 返回 404"
+    method: GET
+    path: /api/v1/workspaces/nonexistent-id
+    response:
+      status: 404
+      body:
+        code: "NOT_FOUND"
+
+  - id: WS-005
+    name: "创建 workspace 缺少 name 返回 400"
+    method: POST
+    path: /api/v1/workspaces
+    request:
+      body:
+        description: "missing name"
+    response:
+      status: 400
+      body:
+        code: "VALIDATION_ERROR"
+
+# ═══════════════════════════════════════════════════
+# Project API
+# ═══════════════════════════════════════════════════
+  - id: PJ-001
+    name: "添加项目到 workspace"
+    method: POST
+    path: /api/v1/workspaces/{workspaceId}/projects
+    request:
+      body:
+        name: "前端项目"
+        repoOwner: "my-org"
+        repoName: "frontend-app"
+    response:
+      status: 201
+      body:
+        name: "前端项目"
+        repoOwner: "my-org"
+        repoName: "frontend-app"
+        syncStatus: "idle"
+        id: "@string"
+        webhookUrl: "@string"    # 返回 webhook 配置指引
+        webhookSecret: "@string" # 仅返回一次
+    save:
+      projectId: "$.id"
+
+  - id: PJ-002
+    name: "重复添加相同 repo 返回 409"
+    method: POST
+    path: /api/v1/workspaces/{workspaceId}/projects
+    request:
+      body:
+        name: "重复项目"
+        repoOwner: "my-org"
+        repoName: "frontend-app"
+    response:
+      status: 409
+      body:
+        code: "CONFLICT"
+
+  - id: PJ-003
+    name: "触发项目同步"
+    method: POST
+    path: /api/v1/projects/{projectId}/sync
+    response:
+      status: 202
+      body:
+        projectId: "{projectId}"
+        status: "queued"
+
+# ═══════════════════════════════════════════════════
+# Agent API
+# ═══════════════════════════════════════════════════
+  - id: AG-001
+    name: "注册前端 Agent"
+    method: POST
+    path: /api/v1/workspaces/{workspaceId}/agents
+    request:
+      body:
+        name: "前端开发专家"
+        role: "frontend"
+        modelName: "kimi-long-v1"
+        capabilityTags: ["frontend", "ui", "component"]
+        skills: ["react-component", "tailwind-css"]
+        maxConcurrency: 3
+    response:
+      status: 201
+      body:
+        name: "前端开发专家"
+        role: "frontend"
+        modelName: "kimi-long-v1"
+        status: "active"
+        maxConcurrency: 3
+        id: "@string"
+    save:
+      agentId: "$.id"
+
+  - id: AG-002
+    name: "注册后端 Agent"
+    method: POST
+    path: /api/v1/workspaces/{workspaceId}/agents
+    request:
+      body:
+        name: "后端开发专家"
+        role: "backend"
+        modelName: "glm-4-flash"
+        capabilityTags: ["backend", "api", "database"]
+    response:
+      status: 201
+    save:
+      agentId2: "$.id"
+
+  - id: AG-003
+    name: "获取 Agent 列表"
+    method: GET
+    path: /api/v1/workspaces/{workspaceId}/agents
+    response:
+      status: 200
+      body_min_length: 2
+
+  - id: AG-004
+    name: "更新 Agent 状态为 paused"
+    method: PATCH
+    path: /api/v1/agents/{agentId}
+    request:
+      body:
+        status: "paused"
+    response:
+      status: 200
+      body:
+        status: "paused"
+
+  - id: AG-005
+    name: "恢复 Agent 状态为 active"
+    method: PATCH
+    path: /api/v1/agents/{agentId}
+    request:
+      body:
+        status: "active"
+    response:
+      status: 200
+      body:
+        status: "active"
+
+# ═══════════════════════════════════════════════════
+# Task API (需要先通过 webhook 或 sync 注入数据)
+# ═══════════════════════════════════════════════════
+  - id: TK-001
+    name: "模拟 webhook 创建 task"
+    setup:
+      action: "insert_task_directly"
+      data:
+        projectId: "{projectId}"
+        issueNumber: 42
+        title: "实现用户登录页面"
+        body: "需要支持邮箱+密码登录"
+        labels: ["frontend", "ui"]
+        status: "backlog"
+        githubUrl: "https://github.com/my-org/frontend-app/issues/42"
+    method: GET
+    path: /api/v1/workspaces/{workspaceId}/tasks
+    response:
+      status: 200
+      body:
+        total: 1
+        items: "@array"
+        items_0:
+          title: "实现用户登录页面"
+          issueNumber: 42
+          labels: ["frontend", "ui"]
+          status: "backlog"
+    save:
+      taskId: "$.items[0].id"
+
+  - id: TK-002
+    name: "按状态筛选任务"
+    method: GET
+    path: /api/v1/workspaces/{workspaceId}/tasks?status=backlog
+    response:
+      status: 200
+      body:
+        total: 1
+
+  - id: TK-003
+    name: "按标签筛选任务"
+    method: GET
+    path: /api/v1/workspaces/{workspaceId}/tasks?label=frontend
+    response:
+      status: 200
+      body:
+        total: 1
+
+  - id: TK-004
+    name: "获取不存在的任务返回 404"
+    method: GET
+    path: /api/v1/tasks/nonexistent-id
+    response:
+      status: 404
+
+  - id: TK-005
+    name: "看板拖拽 backlog → in_progress"
+    method: PATCH
+    path: /api/v1/tasks/{taskId}
+    request:
+      body:
+        status: "in_progress"
+    response:
+      status: 200
+      body:
+        status: "in_progress"
+
+  - id: TK-006
+    name: "非法流转 backlog → done 返回 409"
+    method: PATCH
+    path: /api/v1/tasks/{taskId}
+    request:
+      body:
+        status: "done"
+    response:
+      status: 409
+      body:
+        code: "CONFLICT"
+    # precondition: taskId is in backlog (re-seed if TK-005 already moved it)
+
+  - id: TK-007
+    name: "WIP 超限 in_progress 返回 409"
+    description: "当 in_progress 已达 5 时再移入应 409"
+    method: PATCH
+    path: /api/v1/tasks/{taskId}
+    request:
+      body:
+        status: "in_progress"
+    response:
+      status: 409
+      body:
+        code: "CONFLICT"
+    # precondition: seed 5 in_progress tasks in same workspace (test harness)
+
+# ═══════════════════════════════════════════════════
+# Assignment API
+# ═══════════════════════════════════════════════════
+  - id: AS-001
+    name: "手动分配任务给 Agent"
+    method: POST
+    path: /api/v1/assignments
+    request:
+      body:
+        taskId: "{taskId}"
+        agentId: "{agentId}"
+        instruction: "请实现登录页面，使用 React + Tailwind"
+    response:
+      status: 201
+      body:
+        taskId: "{taskId}"
+        agentId: "{agentId}"
+        status: "pending"
+        retryCount: 0
+        id: "@string"
+    save:
+      assignmentId: "$.id"
+
+  - id: AS-002
+    name: "重复分配返回 409 (幂等检查)"
+    method: POST
+    path: /api/v1/assignments
+    request:
+      body:
+        taskId: "{taskId}"
+        agentId: "{agentId}"
+    response:
+      status: 409
+      body:
+        code: "CONFLICT"
+
+  - id: AS-003
+    name: "获取任务的分配历史"
+    method: GET
+    path: /api/v1/tasks/{taskId}/assignments
+    response:
+      status: 200
+      body_min_length: 1
+      body_0:
+        status: "pending"
+        agentId: "{agentId}"
+
+  - id: AS-004
+    name: "获取 Agent 的分配列表"
+    method: GET
+    path: /api/v1/agents/{agentId}/assignments
+    response:
+      status: 200
+      body_min_length: 1
+
+  - id: AS-005
+    name: "按状态筛选 Agent 分配"
+    method: GET
+    path: /api/v1/agents/{agentId}/assignments?status=pending
+    response:
+      status: 200
+      body_min_length: 1
+
+# ═══════════════════════════════════════════════════
+# Stats API
+# ═══════════════════════════════════════════════════
+  - id: ST-001
+    name: "获取 workspace 统计"
+    method: GET
+    path: /api/v1/workspaces/{workspaceId}/stats
+    response:
+      status: 200
+      body:
+        totalTasks: 1
+        backlogTasks: 1
+        inProgressTasks: 0
+        inReviewTasks: 0
+        doneTasks: 0
+        totalAgents: 2
+        activeAgents: 2
+        totalProjects: 1
+
+# ═══════════════════════════════════════════════════
+# Webhook API
+# ═══════════════════════════════════════════════════
+  - id: WH-001
+    name: "接收 GitHub issue.opened webhook"
+    method: POST
+    path: /api/v1/webhooks/github
+    headers:
+      X-Hub-Signature-256: "sha256=test-signature"
+      X-GitHub-Event: "issues"
+    request:
+      body:
+        action: "opened"
+        issue:
+          number: 43
+          title: "修复登录按钮样式"
+          body: "按钮颜色不对"
+          labels: [{ name: "frontend" }, { name: "bug" }]
+          assignee: null
+          html_url: "https://github.com/my-org/frontend-app/issues/43"
+          state: "open"
+        repository:
+          full_name: "my-org/frontend-app"
+    response:
+      status: 200
+
+  - id: WH-002
+    name: "Webhook 无效签名返回 401"
+    method: POST
+    path: /api/v1/webhooks/github
+    headers:
+      X-Hub-Signature-256: "sha256=invalid-signature"
+      X-GitHub-Event: "issues"
+    request:
+      body:
+        action: "opened"
+        repository:
+          full_name: "my-org/frontend-app"
+    response:
+      status: 401
+
+  - id: WH-003
+    name: "Webhook 未知 repo 返回 404"
+    method: POST
+    path: /api/v1/webhooks/github
+    headers:
+      X-Hub-Signature-256: "sha256=test-signature"
+      X-GitHub-Event: "issues"
+    request:
+      body:
+        action: "opened"
+        repository:
+          full_name: "unknown/repo"
+    response:
+      status: 404
+
+# ═══════════════════════════════════════════════════
+# Label Router (集成测试)
+# ═══════════════════════════════════════════════════
+  - id: LR-001
+    name: "带 frontend 标签的任务自动匹配前端 Agent"
+    setup:
+      action: "insert_task_directly"
+      data:
+        projectId: "{projectId}"
+        issueNumber: 44
+        title: "添加导航栏组件"
+        body: "需要响应式导航栏"
+        labels: ["frontend"]
+        status: "backlog"
+        githubUrl: "https://github.com/my-org/frontend-app/issues/44"
+    method: POST
+    path: /api/v1/assignments/auto
+    request:
+      body:
+        taskId: "{saved_taskId_44}"
+    response:
+      status: 201
+      body:
+        agentId: "{agentId}"   # 应匹配前端 Agent
+        status: "pending"
+
+  - id: LR-002
+    name: "无匹配标签的任务返回 422"
+    setup:
+      action: "insert_task_directly"
+      data:
+        projectId: "{projectId}"
+        issueNumber: 45
+        title: "未知类型任务"
+        body: "没有匹配的标签"
+        labels: ["unknown-type"]
+        status: "backlog"
+        githubUrl: "https://github.com/my-org/frontend-app/issues/45"
+    method: POST
+    path: /api/v1/assignments/auto
+    request:
+      body:
+        taskId: "{saved_taskId_45}"
+    response:
+      status: 422
+      body:
+        code: "NO_MATCHING_AGENT"
+
+# ═══════════════════════════════════════════════════
+# Cleanup
+# ═══════════════════════════════════════════════════
+cleanup:
+  - action: "delete_workspace"
+    id: "{workspaceId}"
+    cascade: true

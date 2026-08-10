@@ -1,0 +1,104 @@
+# Assignment 状态机定义
+# 对应数据库表: kanban_assignment.status
+# 双后端 (Go + Node.js) 都基于此 YAML 实现状态流转逻辑
+
+entity: Assignment
+table: kanban_assignment
+field: status
+initial: pending
+
+states:
+  pending:
+    description: "已创建分配记录，等待 Agent 拾取"
+    color: "#f59e0b"     # amber
+
+  running:
+    description: "Agent 已拾取，正在执行任务"
+    color: "#3b82f6"     # blue
+
+  done:
+    description: "Agent 成功完成执行"
+    color: "#10b981"     # green
+    terminal: true
+
+  failed:
+    description: "Agent 执行失败（重试耗尽后最终失败）"
+    color: "#ef4444"     # red
+    terminal: true
+
+transitions:
+  - name: agent_pickup
+    from: pending
+    to: running
+    event: agent.pickup
+    guard: |
+      agent.status == 'active' &&
+      agent.running_count < agent.max_concurrency
+    action: |
+      UPDATE kanban_assignment
+      SET status = 'running', started_at = datetime('now')
+      WHERE id = :assignment_id
+    description: "Agent 从队列中拾取任务开始执行"
+    side_effect: "触发 task.open → task.in_progress 状态转换"
+
+  - name: execute_success
+    from: running
+    to: done
+    event: agent.success
+    guard: "result_summary != null"
+    action: |
+      UPDATE kanban_assignment
+      SET status = 'done', completed_at = datetime('now'),
+          result_summary = :result
+      WHERE id = :assignment_id
+    description: "Agent 成功完成执行"
+    side_effect: "触发 task.in_progress → task.in_review + GitHub issue comment"
+
+  - name: execute_fail_retry
+    from: running
+    to: pending
+    event: agent.fail
+    guard: "retry_count < 2"
+    action: |
+      UPDATE kanban_assignment
+      SET status = 'pending', retry_count = retry_count + 1
+      WHERE id = :assignment_id
+    description: "执行失败，重试次数未耗尽，放回队列"
+    delay: 300            # 重试延迟 5 分钟 (秒)
+
+  - name: execute_fail_final
+    from: running
+    to: failed
+    event: agent.fail
+    guard: "retry_count >= 2"
+    action: |
+      UPDATE kanban_assignment
+      SET status = 'failed', completed_at = datetime('now')
+      WHERE id = :assignment_id
+    description: "执行失败，重试次数耗尽，标记为最终失败"
+
+  - name: timeout
+    from: running
+    to: failed
+    event: timeout
+    guard: "now() - started_at > 2 hours"
+    action: |
+      UPDATE kanban_assignment
+      SET status = 'failed', completed_at = datetime('now')
+      WHERE id = :assignment_id
+    description: "执行超时（超过 2 小时）"
+
+  - name: manual_cancel
+    from: pending
+    to: failed
+    event: user.cancel
+    guard: "true"
+    action: |
+      UPDATE kanban_assignment
+      SET status = 'failed', completed_at = datetime('now')
+      WHERE id = :assignment_id
+    description: "用户手动取消待处理分配"
+
+# 并发控制: Agent 拾取前检查 running_count < max_concurrency
+# 幂等性: 同一 task 不允许有两个 pending/running assignment
+# 超时检查: 由 cron worker 定期扫描 running 状态

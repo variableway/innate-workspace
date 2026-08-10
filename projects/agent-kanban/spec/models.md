@@ -1,5 +1,7 @@
 # 数据模型设计
 
+> **SSOT 已迁移**：契约与 schema 以 [`../docs/`](../docs/) 为准（TaskStatus 为 4 列：`backlog | in_progress | in_review | done`）。本目录为历史草稿，请勿再当作实现依据。
+
 ## 一、实体关系图 (ER Diagram)
 
 ```

@@ -1,0 +1,164 @@
+# Agent Kanban — Event Contract
+# 定义所有 webhook 事件和模块间内部事件
+# 双后端 (Go + Node.js) 都基于此实现事件系统
+
+# ═══════════════════════════════════════════════════
+# 外部事件: GitHub Webhook (inbound)
+# ═══════════════════════════════════════════════════
+github_events:
+  - name: issues.opened
+    source: github_webhook
+    description: "GitHub Issue 被打开"
+    payload_schema:
+      action: "opened"
+      issue:
+        number: integer
+        title: string
+        body: string
+        labels: array[{ name: string }]
+        assignee: object | null
+        html_url: string
+    handler: "sync_engine.create_or_update_task"
+
+  - name: issues.closed
+    source: github_webhook
+    description: "GitHub Issue 被关闭 → 本地 status=done"
+    payload_schema:
+      action: "closed"
+      issue:
+        number: integer
+        state: "closed"
+    handler: "sync_engine.resolve_status (priority: closed→done)"
+
+  - name: issues.reopened
+    source: github_webhook
+    description: "GitHub Issue 被重新打开 → 再经 sync 优先级栈（label / assignment / keep-local / backlog）"
+    payload_schema:
+      action: "reopened"
+      issue:
+        number: integer
+        state: "open"
+    handler: "sync_engine.resolve_status"
+
+  - name: issues.labeled
+    source: github_webhook
+    description: "GitHub Issue 添加标签；若为 status:* 则驱动看板列"
+    payload_schema:
+      action: "labeled"
+      issue:
+        number: integer
+        labels: array[{ name: string }]
+      label:
+        name: string
+    handler: "sync_engine.update_labels → resolve_status (label 优先) → label_router.auto_assign"
+
+  - name: issues.unlabeled
+    source: github_webhook
+    description: "GitHub Issue 移除标签"
+    handler: "sync_engine.update_labels"
+
+  - name: issues.assigned
+    source: github_webhook
+    description: "GitHub Issue 被分配给某人"
+    handler: "sync_engine.update_assignee"
+
+  - name: issues.edited
+    source: github_webhook
+    description: "GitHub Issue 标题或正文被编辑"
+    handler: "sync_engine.update_task_content"
+
+# ═══════════════════════════════════════════════════
+# 内部事件: 模块间通信
+# ═══════════════════════════════════════════════════
+internal_events:
+  - name: task.synced
+    producer: sync_engine
+    consumers: [task_orchestrator]
+    description: "Issue 同步到本地 task 表后触发"
+    payload:
+      task_id: string
+      project_id: string
+      labels: array[string]
+    trigger: "task_orchestrator.check_label_match"
+
+  - name: match.found
+    producer: task_orchestrator
+    consumers: [dispatch_scheduler]
+    description: "Label Router 找到匹配的 Agent"
+    payload:
+      task_id: string
+      agent_id: string
+      matched_labels: array[string]
+      score: integer
+    trigger: "dispatch_scheduler.create_assignment"
+
+  - name: match.not_found
+    producer: task_orchestrator
+    consumers: [dashboard]
+    description: "没有找到匹配的 Agent（需人工分配）"
+    payload:
+      task_id: string
+      labels: array[string]
+    trigger: "dashboard.show_unassigned_badge"
+
+  - name: assignment.created
+    producer: dispatch_scheduler
+    consumers: [agent_runtime, dashboard]
+    description: "新的分配记录被创建"
+    payload:
+      assignment_id: string
+      task_id: string
+      agent_id: string
+      status: "pending"
+    trigger: "agent_runtime.queue_pickup"
+
+  - name: assignment.started
+    producer: agent_runtime
+    consumers: [task_orchestrator, dashboard]
+    description: "Agent 拾取任务开始执行"
+    payload:
+      assignment_id: string
+      agent_id: string
+      task_id: string
+    trigger: "task_orchestrator.transition_task_to_in_progress"
+
+  - name: assignment.completed
+    producer: agent_runtime
+    consumers: [task_orchestrator, dashboard, sync_engine]
+    description: "Agent 完成执行"
+    payload:
+      assignment_id: string
+      status: "done" | "failed"
+      result_summary: string
+      github_comment_id: integer | null
+    trigger: |
+      if done: task_orchestrator.close_task + sync_engine.comment_github_issue
+      if failed: dispatch_scheduler.check_retry
+
+  - name: assignment.timeout
+    producer: dispatch_scheduler
+    consumers: [agent_runtime, dashboard]
+    description: "分配执行超时"
+    payload:
+      assignment_id: string
+      elapsed_hours: number
+    trigger: "agent_runtime.abort + assignment → failed"
+
+# ═══════════════════════════════════════════════════
+# 外部事件: Webhook 推送 (outbound, 可选 P2)
+# ═══════════════════════════════════════════════════
+outbound_webhooks:
+  - name: task.overdue
+    description: "任务逾期（超过 due_date 未完成）"
+    trigger: "cron_worker 每日扫描"
+    payload:
+      task_id: string
+      days_overdue: integer
+
+  - name: agent.overloaded
+    description: "Agent 负载过高（running >= max_concurrency）"
+    trigger: "dispatch_scheduler 在分配时检测"
+    payload:
+      agent_id: string
+      running_count: integer
+      max_concurrency: integer

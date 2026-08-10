@@ -1,5 +1,8 @@
 # Agent Kanban — 多项目 AI Agent 统一看板
 
+> **产品家**：本目录 `projects/agent-kanban/` 是唯一实现与契约入口。仓库根 `agent-kanban/` 已合并删除。
+> 看板列为 4 列（`backlog | in_progress | in_review | done`）；同步规则见 [`../docs/states/task-states.yaml`](../docs/states/task-states.yaml)。
+
 ## 一、项目愿景
 
 **让 GitHub Issues 成为 AI Agent 的任务队列，一个看板管理多个项目的所有 Agent 工作。**

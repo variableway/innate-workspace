@@ -1,0 +1,104 @@
+# ─────────────────────────────────────────────────────────────────
+#  agent-kanban — root .gitignore
+#  Monorepo: backend-go · backend-node · frontend
+# ─────────────────────────────────────────────────────────────────
+
+# ── OS ──────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ── Editors / IDEs ──────────────────────────────────────────────
+.idea/
+.vscode/
+!.vscode/settings.json
+!.vscode/extensions.json
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# ── Secrets / local config ──────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+secrets/
+config/local.*
+
+# ── Logs ────────────────────────────────────────────────────────
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ── Task (go-task) dev state ────────────────────────────────────
+.task/
+
+# ── Coverage / test artifacts ───────────────────────────────────
+coverage/
+*.coverprofile
+.nyc_output/
+
+# ── Build output (generic) ──────────────────────────────────────
+dist/
+build/
+out/
+tmp/
+*.tsbuildinfo
+
+# ── Go (backend-go) ─────────────────────────────────────────────
+backend-go/bin/
+backend-go/*.exe
+backend-go/*.exe~
+backend-go/*.dll
+backend-go/*.so
+backend-go/*.dylib
+backend-go/*.test
+backend-go/*.out
+backend-go/vendor/
+
+# ── Node / TypeScript (backend-node + frontend) ─────────────────
+node_modules/
+.pnp.*
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnpm-store/
+
+# TypeScript
+*.tsbuildinfo
+
+# Vite / frontend
+.vite/
+.cache/
+.parcel-cache/
+.next/
+.nuxt/
+
+# ── Database / migrations local state ───────────────────────────
+*.sqlite
+*.sqlite-journal
+*.db
+*.db-journal
+
+# ── Misc ────────────────────────────────────────────────────────
+*.bak
+*.tmp
+*.pid
+*.seed
+*.pid.lock
+.history/

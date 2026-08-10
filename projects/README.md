@@ -1,21 +1,31 @@
 # Projects
 
-具体项目，按类型分子目录。
+具体项目，按类型分类。
+
+## 工具类
+
+自研开发工具，辅助 AI Agent 协作与开发流程。
 
 | 项目 | 本地路径 | GitHub | 说明 |
 |------|----------|--------|------|
 | innate-aiswitcher | `tooling/innate-aiswitcher` | [variableway/innate-aiswitcher](https://github.com/variableway/innate-aiswitcher) | 本地 LLM Provider 切换器（Go + PocketBase） |
-| innate-tutor | `innate-tutor` | [variableway/innate-tutor](https://github.com/variableway/innate-tutor) | AI Interactive Education 产品，整合 DeepTutor 与 OpenMAIC |
+
+## 项目产品类
+
+完整的产品/系统项目。
+
+| 项目 | 本地路径 | GitHub | 说明 |
+|------|----------|--------|------|
+| agent-kanban | `agent-kanban` | — | 多 AI Agent 统一看板系统（架构设计 + 双后端实现） |
 | reset-from-zero | `reset-from-zero` | [variableway/reset-from-zero](https://github.com/variableway/reset-from-zero) | AI Agent 辅助的项目分析与重构集合 |
+
+## 教程类
+
+参考项目，用于学习和对标。
+
+| 项目 | 本地路径 | GitHub | 说明 |
+|------|----------|--------|------|
 | Instatic | `references/Instatic` | [CoreBunch/Instatic](https://github.com/CoreBunch/Instatic) | 参考项目 |
-
-其他子目录：
-
-| 目录 | 用途 |
-|------|------|
-| `tooling/` | 自研工具 |
-| `references/` | 参考项目 |
-| `agent-kanban/` | Agent Kanban 看板系统（架构设计） |
 
 ## 克隆
 

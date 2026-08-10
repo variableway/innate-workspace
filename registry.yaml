@@ -65,3 +65,13 @@ projects:
     repo: https://github.com/variableway/innate-aiswitcher.git
     path: projects/tooling/innate-aiswitcher
     desc: 本地 LLM Provider 切换器，Go + PocketBase
+
+  - name: AgentTODO
+    repo: https://github.com/alanhsun/AgentTODO.git
+    path: projects/agent-kanban/references/AgentTODO
+    desc: agent-kanban 参考项目
+
+  - name: LobsterBoard
+    repo: https://github.com/Curbob/LobsterBoard.git
+    path: projects/agent-kanban/references/LobsterBoard
+    desc: agent-kanban 参考项目

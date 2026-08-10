@@ -12,27 +12,16 @@
 
 各目录详见其下的 README。
 
-## 克隆
+## 克隆 / 更新
 
-所有子项目统一在 `registry.yaml` 中注册。新增项目追加条目后：
+所有子项目统一在 `registry.yaml` 中注册，并由 `.gitmodules` 提供 submodule URL 映射。
 
 ```bash
+# 推荐：按 registry 克隆缺失项目，并拉取各仓库最新代码（fast-forward）
 python3 scripts/clone.py
+
+# 仅初始化/对齐到父仓库锁定的 commit（可能不是各子仓最新）
+git submodule update --init
 ```
 
-## Registry 同步
-
-扫描 `skills/`、`base/`、`projects/` 下带 `origin` 的独立 git 仓库，自动更新 `registry.yaml`：
-
-```bash
-python3 scripts/sync-registry.py           # 写回 registry.yaml
-python3 scripts/sync-registry.py --check   # 仅检查是否漂移
-python3 scripts/sync-registry.py --dry-run # 预览
-python3 scripts/sync-registry.py --prune   # 同时删除本地已不存在的注册项
-```
-
-安装本地 pre-commit hook 后，在 innate-works 提交时会先同步并自动 `git add registry.yaml`：
-
-```bash
-bash scripts/install-git-hooks.sh
-```
+> 注意：不要依赖 `git submodule update` 获取“最新代码”；它只会 checkout 父仓库记录的固定 SHA。要最新请用 `scripts/clone.py`。

@@ -1,3 +1,42 @@
-[submodule "desktop-ref/tolaria"]
-	path = desktop-ref/tolaria
-	url = https://github.com/refactoringhq/tolaria.git
+[submodule "skills/devops-skill"]
+	path = skills/devops-skill
+	url = https://github.com/qdriven/devops-skill.git
+[submodule "skills/figures-skill"]
+	path = skills/figures-skill
+	url = https://github.com/qdriven/figures-skill.git
+[submodule "skills/fin-skills"]
+	path = skills/fin-skills
+	url = https://github.com/qdriven/fin-skills.git
+[submodule "skills/fire-skills"]
+	path = skills/fire-skills
+	url = https://github.com/variableway/fire-skills.git
+[submodule "skills/presentation-skills"]
+	path = skills/presentation-skills
+	url = https://github.com/qdriven/presentation-skills.git
+[submodule "skills/sdlc-skills"]
+	path = skills/sdlc-skills
+	url = https://github.com/qdriven/sdlc-skills.git
+[submodule "skills/wip-skills"]
+	path = skills/wip-skills
+	url = https://github.com/qdriven/wip-skills.git
+[submodule "base/innate-fe-base"]
+	path = base/innate-fe-base
+	url = https://github.com/variableway/innate-fe-templates.git
+[submodule "projects/innate-tutor"]
+	path = projects/innate-tutor
+	url = https://github.com/variableway/innate-tutor.git
+[submodule "projects/references/Instatic"]
+	path = projects/references/Instatic
+	url = https://github.com/CoreBunch/Instatic.git
+[submodule "projects/reset-from-zero"]
+	path = projects/reset-from-zero
+	url = https://github.com/variableway/reset-from-zero.git
+[submodule "projects/tooling/innate-aiswitcher"]
+	path = projects/tooling/innate-aiswitcher
+	url = https://github.com/variableway/innate-aiswitcher.git
+[submodule "projects/agent-kanban/references/AgentTODO"]
+	path = projects/agent-kanban/references/AgentTODO
+	url = https://github.com/alanhsun/AgentTODO.git
+[submodule "projects/agent-kanban/references/LobsterBoard"]
+	path = projects/agent-kanban/references/LobsterBoard
+	url = https://github.com/Curbob/LobsterBoard.git

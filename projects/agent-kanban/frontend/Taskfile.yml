@@ -1,0 +1,56 @@
+version: "3"
+
+tasks:
+  default:
+    desc: Show available tasks
+    cmds:
+      - task --list
+
+  install:
+    desc: Install workspace deps from product root
+    dir: ..
+    cmds:
+      - pnpm install
+
+  dev:
+    desc: Start Vite dev server on port 5173
+    cmds:
+      - pnpm run dev
+    env:
+      VITE_API_BASE: /api/v1
+
+  dev:go:
+    desc: Start Vite with Go backend via proxy target
+    cmds:
+      - pnpm run dev
+    env:
+      BACKEND_URL: http://localhost:8080
+      VITE_API_BASE: /api/v1
+
+  dev:node:
+    desc: Start Vite with Node backend proxy
+    cmds:
+      - pnpm run dev
+    env:
+      BACKEND_URL: http://localhost:4001
+      VITE_API_BASE: /api/v1
+
+  build:
+    desc: Build for production
+    cmds:
+      - pnpm run build
+
+  preview:
+    desc: Preview production build
+    cmds:
+      - pnpm run preview
+
+  typecheck:
+    desc: Type-check frontend
+    cmds:
+      - pnpm run typecheck
+
+  clean:
+    desc: Clean build artifacts
+    cmds:
+      - rm -rf dist node_modules/.vite

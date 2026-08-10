@@ -1,0 +1,65 @@
+version: "3"
+
+vars:
+  NODE: /Users/patrick/.workbuddy/binaries/node/versions/22.22.2/bin/node
+  NPM: /Users/patrick/.workbuddy/binaries/node/versions/22.22.2/bin/npm
+  TSC: ./node_modules/.bin/tsc
+  TSX: ./node_modules/.bin/tsx
+
+tasks:
+  default:
+    desc: Show available tasks
+    cmds:
+      - task --list
+
+  install:
+    desc: Install dependencies
+    cmds:
+      - "{{.NPM}} install"
+
+  dev:
+    desc: Run with hot reload (tsx watch)
+    cmds:
+      - "{{.TSX}} watch src/index.ts"
+
+  build:
+    desc: Compile TypeScript
+    cmds:
+      - "{{.TSC}}"
+    sources:
+      - src/**/*.ts
+      - tsconfig.json
+    generates:
+      - dist/**/*.js
+
+  start:
+    desc: Run compiled output
+    cmds:
+      - "{{.NODE}} dist/index.js"
+
+  typecheck:
+    desc: Type-check without emitting
+    cmds:
+      - "{{.TSC}} --noEmit"
+
+  test:
+    desc: Run tests
+    cmds:
+      - ./node_modules/.bin/vitest run
+
+  test:watch:
+    desc: Run tests in watch mode
+    cmds:
+      - ./node_modules/.bin/vitest
+
+  clean:
+    desc: Clean build artifacts
+    cmds:
+      - rm -rf dist/ dev.db dev.db-wal dev.db-shm
+
+  all:
+    desc: Install + typecheck + build
+    deps: [install]
+    cmds:
+      - task: typecheck
+      - task: build
