@@ -69,6 +69,10 @@ task canvas:status                        # 检查是否漂移
 
 说明见 [`canvases/README.md`](canvases/README.md)、[`tools/canvas-load/README.md`](tools/canvas-load/README.md)。
 
+## 手工看板（实现本系统时用）
+
+按产品自己的列与审查闸来做实现：[backlog/PLAYBOOK.md](backlog/PLAYBOOK.md)（步骤×模块）、[backlog/BOARD.md](backlog/BOARD.md)（优先级）。下一张可动手的卡：**AK-001**。
+
 ## 快速开始
 
 ```bash

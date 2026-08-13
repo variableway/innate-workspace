@@ -3,6 +3,7 @@
 > **产品家**：本目录 `projects/agent-kanban/` 是唯一实现与契约入口。
 > 看板列：`backlog | in_progress | in_review | done`（WIP 与同步规则见 [`../docs/states/task-states.yaml`](../docs/states/task-states.yaml)）。
 > 需求对齐计划：[`../suggestion/08-requirements-aligned-plan.md`](../suggestion/08-requirements-aligned-plan.md)。
+> 手工实现看板：[backlog/PLAYBOOK.md](../backlog/PLAYBOOK.md)。
 
 ## 一、项目愿景
 
