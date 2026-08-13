@@ -6,7 +6,11 @@
   "scripts": {
     "dev": "pnpm --filter agent-kanban-frontend dev",
     "build": "pnpm --filter agent-kanban-frontend build",
-    "typecheck": "pnpm -r --if-present typecheck"
+    "typecheck": "pnpm -r --if-present typecheck",
+    "canvas:list": "node tools/canvas-load/cli.mjs list",
+    "canvas:status": "node tools/canvas-load/cli.mjs status",
+    "canvas:sync": "node tools/canvas-load/cli.mjs sync",
+    "canvas:load": "node tools/canvas-load/cli.mjs load"
   },
   "devDependencies": {
     "typescript": "^5.7.2"

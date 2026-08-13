@@ -20,12 +20,11 @@ When webhook 因网络问题丢失，Then 系统应通过定时轮询（每 5 �
 ### US-3: 首次全量同步
 When 新项目添加时，Then 系统应拉取该 Repo 的所有 open Issue 到本地缓存。
 
-### US-4: 状态回写
-While Agent 完成任务后，Then 同步引擎应在 GitHub Issue 下写入执行结果评论并尝试关闭 Issue。
+### US-4: 状态与摘要回写
+While Agent 完成任务后，Then 同步引擎应回写 `status:*` label（通常 `status:in-review`），并可将 Artifact summary 写成 Issue **短评论**（长文留在 Artifact，避免双写漂移）。默认 **不** 因 Agent complete 直接 close Issue；close 由人工确认 done 或策略触发。
 
 ### US-5: 冲突处理
-If GitHub Issue 状态与本地缓存不一致，Then 系统应以 GitHub 为准，覆盖本地状态。
-
+If GitHub Issue 状态与本地缓存不一致，Then 按 `docs/states/task-states.yaml` 优先级栈解析（closed / status:* / assignment / keep-local / backlog），而非简单「永远覆盖本地」。
 ## 三、功能清单
 
 | ID | 功能 | 优先级 | 说明 |
@@ -34,10 +33,10 @@ If GitHub Issue 状态与本地缓存不一致，Then 系统应以 GitHub 为准
 | F2 | 事件分发器 | P0 | 根据 event type 分发到对应 handler |
 | F3 | Issue 创建处理 | P0 | 写入 tasks 表，触发任务编排 |
 | F4 | Issue 更新处理 | P0 | 同步 title/body/labels/assignee/status 变更 |
-| F5 | Issue 关闭处理 | P0 | 更新 task.status = closed |
+| F5 | Issue 关闭处理 | P0 | 更新 task.status = done |
 | F6 | 轮询同步 | P1 | 每 5 分钟拉取 open issues，diff + 补齐 |
 | F7 | 全量同步 | P1 | 手动触发或首次添加项目时执行 |
-| F8 | 回写 GitHub | P1 | 通过 Octokit API 写 comment 和 close issue |
+| F8 | 回写 GitHub | P1 | 写 status:* label、短 comment；按策略 close |
 | F9 | 签名验证 | P0 | HMAC-SHA256 验证 webhook 合法性 |
 | F10 | 同步状态监控 | P2 | 记录每次同步的耗时和结果 |
 
@@ -84,13 +83,13 @@ POST /webhooks/github
 ### 4.3 状态回写流程
 
 ```
-Agent 执行完成
+Agent TIP complete（或看板 PATCH）
   │
-  ├── 1. Octokit.issues.createComment(issue_number, result)
-  ├── 2. Octokit.issues.update(issue_number, state: 'closed')
-  └── 3. 更新本地 assignment.status / task.status
+  ├── 1. 同步 status:* labels（如 status:in-review）
+  ├── 2. 可选：createComment(摘要 + Artifact 链接)
+  ├── 3. 仅当目标列为 done 且策略允许时 close issue
+  └── 4. 本地 task.status 已由 Orchestrator 更新；本模块保证与 GitHub 一致
 ```
-
 ## 五、技术方案
 
 | 项 | 选择 |

@@ -133,3 +133,30 @@ tasks:
   clean:
     desc: Clean everything
     deps: [clean:go, clean:node, clean:frontend]
+
+  # ── Canvas (repo SSOT → Cursor IDE) ─────────────────────────
+
+  canvas:list:
+    desc: List canvases/ *.canvas.tsx (repo SSOT)
+    cmds:
+      - node tools/canvas-load/cli.mjs list
+
+  canvas:path:
+    desc: Print resolved Cursor canvases directory
+    cmds:
+      - node tools/canvas-load/cli.mjs path
+
+  canvas:status:
+    desc: Diff repo canvases vs Cursor (exit 1 if drift)
+    cmds:
+      - node tools/canvas-load/cli.mjs status
+
+  canvas:sync:
+    desc: Sync repo canvases/ → Cursor IDE canvases dir
+    cmds:
+      - node tools/canvas-load/cli.mjs sync {{.CLI_ARGS}}
+
+  canvas:load:
+    desc: Sync + print path/uri to open beside chat
+    cmds:
+      - node tools/canvas-load/cli.mjs load {{.CLI_ARGS}}

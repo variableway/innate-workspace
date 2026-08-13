@@ -12,7 +12,7 @@
 ## 二、用户故事
 
 ### US-1: 跨项目 Kanban
-When 用户打开看板，Then 应看到所有项目的任务按状态分列（待处理 | 进行中 | 已完成）。
+When 用户打开看板，Then 应看到所有项目的任务按状态分列（backlog | in_progress | in_review | done）。
 
 ### US-2: 按 Agent 筛选
 When 用户选择特定 Agent，Then 看板应只展示该 Agent 正在处理或已处理的任务。
@@ -36,16 +36,18 @@ When 用户查看顶部统计栏，Then 应看到总任务数、各状态计数�
 
 | ID | 功能 | 优先级 | 说明 |
 |----|------|--------|------|
-| F1 | Kanban 三列视图 | P0 | 待处理 / 进行中 / 已完成 |
-| F2 | 任务卡片 | P0 | 显示 title、project、labels、agent、priority |
+| F1 | Kanban 四列视图 | P0 | backlog / in_progress / in_review / done |
+| F2 | 任务卡片 | P0 | title、project、labels、agent、priority、进度 stage |
 | F3 | 多维度筛选 | P0 | 按 project、agent、label、status 筛选 |
 | F4 | 统计概览栏 | P0 | 总数、各状态计数、Agent 活跃数 |
-| F5 | 任务详情面板 | P1 | 展开显示 body、分配历史、日志 |
+| F5 | 任务详情面板 | P1 | body、分配历史、**Artifact 时间线**、阻塞问题 |
 | F6 | 手动分配 | P1 | 未匹配任务的分配按钮 + Agent 选择器 |
 | F7 | 实时更新 | P1 | WebSocket 或轮询驱动看板自动刷新 |
-| F8 | 工作空间切换 | P1 | 支持多个 Workspace |
-| F9 | Agent 负载视图 | P2 | 展示每个 Agent 的 running/pending/done 数量 |
-| F10 | 暗色模式 | P2 | 支持 light/dark 切换 |
+| F8 | 计划审批 UI | P1 | 对 pending_review 的 plan 批准/驳回 |
+| F9 | Agent Swimlane | P2 | 按 Agent 查看 running/pending/done |
+| F10 | 依赖图 | P2 | task_edge：父子 / blocks |
+| F11 | 通知渠道配置 | P2 | Workspace 级 IM / webhook 绑定 |
+| F12 | 暗色模式 | P2 | 支持 light/dark 切换 |
 
 ## 四、页面布局
 
@@ -102,20 +104,17 @@ When 用户查看顶部统计栏，Then 应看到总任务数、各状态计数�
 ```
 ┌──────────────────────────────────────┐
 │  实现用户登录页面                  ✕  │
-│  ──────────────────────────────────  │
 │  my-org/frontend-app #42             │
-│  Labels: frontend, ui                │
-│  Status: in_progress                 │
-│  Agent: 前端开发专家 (Kimi)          │
+│  Labels · Status · Agent · Progress  │
 │                                      │
-│  Issue Body:                         │
-│  需要实现一个支持邮箱+密码登录的...   │
-│                                      │
-│  ── 分配历史 ──                      │
-│  ● 2026-08-02 14:00 Agent 开始执行   │
-│  ● 2026-08-02 13:55 自动分配         │
-│                                      │
-│  [在 GitHub 查看] [重新分配]         │
+│  Issue Body (Spec)                   │
+│  ── Artifact 时间线 ──               │
+│  ● plan@v2  (approved)               │
+│  ● note     实现登录表单             │
+│  ● summary  PR #88 待审              │
+│  ── 分配 / Handoff ──                │
+│  ● 自动分配 → claim → complete       │
+│  [批准计划] [在 GitHub 查看] [重分配] │
 └──────────────────────────────────────┘
 ```
 
@@ -195,16 +194,17 @@ src/
 
 ## 十二、验收标准
 
-- [ ] 所有项目的任务聚合在三个 Kanban 列中
+- [ ] 所有项目的任务聚合在 **四列** Kanban 中
 - [ ] 支持按项目/Agent/Label 多维度筛选
 - [ ] 未分配任务有明显视觉区分
-- [ ] 点击任务卡片展示详情面板
-- [ ] 手动分配功能可用
+- [ ] 详情面板展示 Artifact 时间线与分配/handoff 历史
+- [ ] 手动分配与计划审批可用
 - [ ] 统计数据实时准确
 - [ ] 移动端响应式布局基本可用
 - [ ] 页面初始加载 < 2 秒
 
 ## 十三、依赖
 
-- 上游：所有 API (Workspace/Project/Task/Agent/Assignment)
+- 上游：Workspace/Project/Task/Agent/Assignment/**Artifact**/TIP 读模型
 - 运行环境：现代浏览器 (Chrome/Edge/Firefox/Safari 最新两个版本)
+- 计划对齐：[`suggestion/08-requirements-aligned-plan.md`](../suggestion/08-requirements-aligned-plan.md) M2/M4

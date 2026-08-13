@@ -16,6 +16,65 @@ export type TaskStatus = 'backlog' | 'in_progress' | 'in_review' | 'done';
 export type AgentStatus = 'active' | 'paused' | 'offline';
 export type AssignmentStatus = 'pending' | 'running' | 'done' | 'failed';
 
+/** 执行过程账本（过程 SoT）；spec 为 AC 叠加层，需求正文仍以 Issue 为准 */
+export type ArtifactKind = 'spec' | 'plan' | 'note' | 'log' | 'summary' | 'decision';
+
+/** Assignment 协议阶段（产品「三关」拆分，见 modules/review-gates.md） */
+export type AssignmentStage =
+  | 'intake'
+  | 'wait_spec'
+  | 'plan'
+  | 'wait_plan'
+  | 'implement'
+  | 'verify'
+  | 'finalize';
+
+export type GateName = 'spec' | 'plan' | 'verify' | 'code';
+export type GateStatus =
+  | 'pending'
+  | 'submitted'
+  | 'approved'
+  | 'rejected'
+  | 'skipped';
+
+/** 协议 Skill ID（过闸纪律；领域 Skill 仍放 Agent.skills） */
+export type ProtocolSkillId =
+  | 'kanban.intake'
+  | 'kanban.plan'
+  | 'kanban.implement'
+  | 'kanban.verify'
+  | 'kanban.finalize';
+export type ArtifactStatus =
+  | 'draft'
+  | 'published'
+  | 'pending_review'
+  | 'approved'
+  | 'rejected';
+
+export type TaskEdgeType = 'parent_of' | 'blocks' | 'relates_to';
+
+/** Task Interaction Protocol v0.1 */
+export type TipMessageType =
+  | 'claim'
+  | 'heartbeat'
+  | 'progress'
+  | 'ask_human'
+  | 'submit_spec'
+  | 'submit_plan'
+  | 'resume'
+  | 'handoff'
+  | 'complete'
+  | 'fail'
+  | 'cancel';
+
+export type NotifyChannelType =
+  | 'webhook'
+  | 'slack'
+  | 'feishu'
+  | 'dingtalk'
+  | 'wecom';
+
+export type NotificationDeliveryStatus = 'pending' | 'success' | 'failed';
 /** GitHub status:* label → TaskStatus（字典序冲突时取第一个匹配） */
 export const STATUS_LABEL_PREFIX = 'status:';
 export const STATUS_LABELS: Record<TaskStatus, string> = {
@@ -87,6 +146,7 @@ export interface Assignment {
   taskId: string;
   agentId: string;
   status: AssignmentStatus;
+  stage: AssignmentStage;
   modelUsed: string | null;
   resultSummary: string | null;
   instruction: string | null;
@@ -97,6 +157,121 @@ export interface Assignment {
   completedAt: string | null;
 }
 
+export interface Gate {
+  id: string;
+  taskId: string;
+  assignmentId: string | null;
+  gate: GateName;
+  status: GateStatus;
+  artifactId: string | null;
+  reviewer: string | null;
+  comment: string;
+  decidedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GatePolicy {
+  required: 'always' | 'never' | 'auto';
+  reviewer: 'human' | 'none';
+  skill: ProtocolSkillId;
+  skipLabels?: string[];
+  handoffRole?: string;
+}
+
+export interface BootstrapEnvelope {
+  protocol: 'kanban-agent-bootstrap';
+  version: '0.1';
+  assignmentId: string;
+  taskId: string;
+  agentId: string;
+  tipEndpoint: string;
+  workflowUris: Record<
+    'overview' | 'spec' | 'plan' | 'implement' | 'finalize',
+    string
+  >;
+  gates: Record<GateName, {
+    required: boolean;
+    status: GateStatus;
+    skill?: ProtocolSkillId;
+    reviewer?: 'human' | 'none';
+    column?: TaskStatus;
+  }>;
+  stage: AssignmentStage;
+  spec: {
+    source: 'github_issue';
+    title: string;
+    body: string;
+    labels: string[];
+    githubUrl: string;
+    specArtifactId: string | null;
+  };
+  allowedSkills: string[];
+  forbiddenUntilPlanApproved: string[];
+  requiredFirstTip: TipMessageType;
+}
+
+export interface Artifact {
+  id: string;
+  taskId: string;
+  assignmentId: string | null;
+  agentId: string | null;
+  kind: ArtifactKind;
+  title: string;
+  bodyMd: string;
+  status: ArtifactStatus;
+  version: number;
+  githubCommentId: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TaskEdge {
+  id: string;
+  workspaceId: string;
+  fromTaskId: string;
+  toTaskId: string;
+  edgeType: TaskEdgeType;
+  createdAt: string;
+}
+
+export interface TipEnvelope<TPayload = Record<string, unknown>> {
+  protocol: 'tip';
+  version: '0.1';
+  messageId: string;
+  type: TipMessageType;
+  timestamp: string;
+  agentId: string;
+  assignmentId: string;
+  taskId: string;
+  payload: TPayload;
+}
+
+export interface NotifyChannel {
+  id: string;
+  workspaceId: string;
+  name: string;
+  channelType: NotifyChannelType;
+  endpointUrl: string;
+  /** 列表接口应掩码；仅创建时可回明文 */
+  secret: string | null;
+  events: string[];
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface NotificationDelivery {
+  id: string;
+  channelId: string;
+  eventName: string;
+  taskId: string | null;
+  status: NotificationDeliveryStatus;
+  attempts: number;
+  lastError: string | null;
+  createdAt: string;
+  deliveredAt: string | null;
+}
+
 // ── Composite Views (for API responses) ────────────────────────
 
 export interface TaskWithAssignment extends Task {
@@ -104,6 +279,10 @@ export interface TaskWithAssignment extends Task {
   repoOwner: string;
   repoName: string;
   currentAssignment: AssignmentWithAgent | null;
+  /** 详情面板用：最新 plan / summary 等 */
+  latestArtifacts?: Partial<Record<ArtifactKind, Artifact>>;
+  progressStage?: string | null;
+  blockedQuestion?: string | null;
 }
 
 export interface AssignmentWithAgent extends Assignment {

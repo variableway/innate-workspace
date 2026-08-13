@@ -3,7 +3,10 @@
 > 取代 `06-implementation-plan-on-fe-base.md` 中的单后端方案
 > 核心变化：后端用 Go 和 Node.js **同时实现**，共享 OpenAPI 契约和 DB Schema
 > 日期：2026-08-03
-
+>
+> **产品能力里程碑**（Artifact / TIP / Notifier）见同目录
+> [`08-requirements-aligned-plan.md`](./08-requirements-aligned-plan.md)；本文件继续管双后端工程轨。
+> 契约目录以 `docs/` 为准（历史文中的 `spec/` 路径已迁并）。
 ## 一、为什么双后端
 
 | 动机 | 说明 |

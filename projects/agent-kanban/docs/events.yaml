@@ -144,9 +144,117 @@ internal_events:
       elapsed_hours: number
     trigger: "agent_runtime.abort + assignment → failed"
 
+  - name: artifact.created
+    producer: artifact_store
+    consumers: [dashboard, sync_engine]
+    description: "新的执行账本条目（plan/note/log/summary/decision）"
+    payload:
+      artifact_id: string
+      task_id: string
+      assignment_id: string | null
+      kind: "spec" | "plan" | "note" | "log" | "summary" | "decision"
+      status: string
+    trigger: |
+      if kind=plan && status=pending_review: dashboard.show_plan_review
+      if kind=summary: optional sync_engine.comment_github_issue
+
+  - name: artifact.plan_approved
+    producer: dashboard
+    consumers: [agent_runtime, dispatch_scheduler]
+    description: "人工批准实现计划，允许继续 coding（等价 gate=plan approved）"
+    payload:
+      artifact_id: string
+      task_id: string
+      assignment_id: string
+    trigger: "agent_runtime.resume_after_plan_gate"
+
+  - name: gate.submitted
+    producer: tip_gateway
+    consumers: [dashboard, notifier]
+    description: "Agent 提交 spec 或 plan 等待人审"
+    payload:
+      gate_id: string
+      gate: "spec" | "plan" | "verify"
+      assignment_id: string
+      artifact_id: string
+    trigger: "dashboard.show_gate_review"
+
+  - name: gate.decided
+    producer: dashboard
+    consumers: [agent_runtime, dispatch_scheduler, notifier]
+    description: "人审批准或驳回某一闸"
+    payload:
+      gate_id: string
+      gate: "spec" | "plan" | "verify" | "code"
+      decision: "approved" | "rejected"
+      assignment_id: string
+    trigger: |
+      if approved: stage 前进 + 可选 Push resume
+      if rejected: stage 回到 spec 或 plan，要求新 version artifact
+
+  - name: tip.received
+    producer: tip_gateway
+    consumers: [dispatch_scheduler, artifact_store, task_orchestrator, dashboard, notifier]
+    description: "TIP 信封已通过校验（幂等后）"
+    payload:
+      message_id: string
+      type: string
+      assignment_id: string
+      agent_id: string
+      task_id: string
+    trigger: "按 type 分发至对应 handler"
+
+  - name: tip.ask_human
+    producer: tip_gateway
+    consumers: [dashboard, notifier]
+    description: "Agent 请求人工决策"
+    payload:
+      assignment_id: string
+      task_id: string
+      question: string
+      options: array[string] | null
+    trigger: "dashboard.show_blocked + notifier.push"
+
+  - name: tip.handoff
+    producer: tip_gateway
+    consumers: [dispatch_scheduler, dashboard]
+    description: "Agent 交接：旧 assignment 结束，新 assignment 创建"
+    payload:
+      from_assignment_id: string
+      to_agent_id: string
+      context_ref: string
+      new_assignment_id: string
+    trigger: "dispatch_scheduler.enqueue_handoff"
+
+  - name: task.moved_in_review
+    producer: task_orchestrator
+    consumers: [dashboard, notifier, sync_engine]
+    description: "Agent 完成执行，任务进入待审核列"
+    payload:
+      task_id: string
+      assignment_id: string
+      summary_artifact_id: string | null
+    trigger: "notifier.push + sync status:in-review label"
+
 # ═══════════════════════════════════════════════════
-# 外部事件: Webhook 推送 (outbound, 可选 P2)
+# 外部事件: IM / Webhook 推送 (outbound)
 # ═══════════════════════════════════════════════════
+outbound_notifications:
+  description: "由 Notifier 根据 kanban_notify_channel.events 订阅投递"
+  default_events:
+    - assignment.completed
+    - assignment.failed
+    - tip.ask_human
+    - task.moved_in_review
+  channels: [webhook, slack, feishu, dingtalk, wecom]
+  payload_common:
+    task_id: string
+    title: string
+    github_url: string
+    agent_name: string | null
+    summary: string | null
+    event_name: string
+
 outbound_webhooks:
   - name: task.overdue
     description: "任务逾期（超过 due_date 未完成）"

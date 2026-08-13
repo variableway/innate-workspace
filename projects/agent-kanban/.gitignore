@@ -95,6 +95,9 @@ node_modules/
 *.db
 *.db-journal
 
+# ── Cursor canvas runtime (never commit) ───────────────────────
+*.canvas.status.json
+
 # ── Misc ────────────────────────────────────────────────────────
 *.bak
 *.tmp

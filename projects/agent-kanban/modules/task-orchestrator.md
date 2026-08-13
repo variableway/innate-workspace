@@ -68,33 +68,27 @@ function matchAgent(task, agents):
 
 ### 4.2 状态机
 
-```
-                  ┌─────────┐
-                  │  open   │  ← Issue 新建 / reopened
-                  └────┬────┘
-                       │ Agent 匹配 + 分配
-                       ▼
-                  ┌──────────┐
-                  │ in_progress │
-                  └────┬─────┘
-                       │
-              ┌────────┼────────┐
-              │                 │
-          Agent 成功        Agent 失败
-              │                 │
-              ▼                 ▼
-         ┌────────┐      ┌──────────┐
-         │ closed │      │ in_progress│ (保持，等下一轮或人工处理)
-         └────────┘      └──────────┘
+看板列以 `docs/states/task-states.yaml` 为准（4 列）：
 
-合法流转:
-  open        → in_progress (Assign)
-  in_progress → closed      (Agent done)
-  in_progress → open        (Agent failed, 人工重置)
-  closed      → open        (GitHub reopened)
+```
+backlog → in_progress → in_review → done
+                ↑            │
+                └────────────┘ (重开 / 失败回流等，见 YAML)
 ```
 
-### 4.3 优先级排序
+要点：
+
+- Agent TIP `complete` → **in_review**（不是直接 done）
+- GitHub Issue `closed` → done（同步优先级栈）
+- 合法流转细节不在本文件重复，避免与契约漂移
+
+### 4.3 子任务与依赖（M3）
+
+- 支持 `kanban_task_edge`：`parent_of` / `blocks` / `relates_to`
+- 父任务可保持 in_progress，直到子任务均 in_review/done（策略可配置）
+- Label 路由可对子任务分别匹配不同 Agent
+
+### 4.4 优先级排序
 
 ```
 Priority 映射:
@@ -114,8 +108,10 @@ Priority 映射:
 |--------|------|------|
 | Webhook: issue.opened | 新 Issue 创建 | 写入 Task → 执行标签匹配 → 触发 Dispatch |
 | Webhook: issue.labeled | 新增标签 | 重新执行标签匹配 → 可能触发 Dispatch |
-| Webhook: issue.reopened | Issue 重新打开 | task.status = open → 执行标签匹配 |
-| Webhook: issue.closed | Issue 关闭 | task.status = closed（不触发 Dispatch） |
+| Webhook: issue.reopened | Issue 重新打开 | 再经 sync 优先级栈解析列（通常 backlog）→ 可再匹配 |
+| Webhook: issue.closed | Issue 关闭 | task.status = done（不触发 Dispatch） |
+| TIP: complete | Agent 完成 | task → in_review；发 task.moved_in_review |
+| TIP: handoff | 交接 | 不改列；由 Dispatch 建新 Assignment |
 | Polling: 定时 | 每 5 分钟 | 检测未匹配任务，重试匹配 |
 
 ## 六、数据输出

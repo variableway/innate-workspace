@@ -23,8 +23,8 @@ When 用户在未匹配任务上手动选择 Agent，Then 系统创建 Assignmen
 ### US-4: 失败重试
 If Agent 执行失败，Then 系统应记录失败原因，并将任务放回待分配队列（最多重试 2 次）。
 
-### US-5: 分配历史
-When 用户查看任务详情，Then 应能看到该任务的所有分配记录和时间线。
+### US-5: 分配历史与交接
+When 用户查看任务详情，Then 应能看到该任务的所有分配记录、handoff 链路与时间线。
 
 ## 三、功能清单
 
@@ -113,12 +113,20 @@ Agent 的 WorkBuddy Automation 每 5 分钟执行:
   5. 完成后更新 assignment.status = done
 ```
 
-### 模式 B: Webhook Push (V2)
+### 模式 B: Webhook Push (推荐与 TIP 对齐)
 ```
 Dispatch Scheduler 分配成功后:
   POST <agent-webhook-url>
-  Body: { taskId, title, body, labels, instruction }
-  → Agent 收到后立即执行
+  Body: TIP 友好载荷 { assignment_id, task_id, title, body, labels, instruction, tip_endpoint }
+  → Agent claim 后执行；进度经 POST /api/v1/tip
+```
+
+### 模式 C: Handoff 入队 (M3)
+```
+收到 tip.handoff:
+  1. 将 from assignment 标记 done（结果摘要含 handed_off）
+  2. 创建 to_agent 的新 Assignment（pending），instruction 含 context_ref
+  3. 按并发规则入队 / Push
 ```
 
 ## 八、API 设计
