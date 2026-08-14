@@ -7,11 +7,11 @@
 | 模块目录 | 对应 README | 目标产物 | 现状 |
 |----------|-------------|----------|------|
 | [`modules/01-fe-base`](modules/01-fe-base/) | 前端基础 + FE Skill | 以现有 `base/innate-fe-base` 为唯一入口，补齐治理与复用边界 | 代码已有，任务做增强 |
-| [`modules/02-be-base`](modules/02-be-base/) | 后端基础 + BE Skill | 新建后端脚手架 + `be-starter` skill | 待建 |
+| [`modules/02-be-base`](modules/02-be-base/) | 后端基础 + BE Skill | 任务在本模块；实现见 [`innate-backend`](../innate-backend/) + `projects/tooling/innate-*` | Skill/样例已迁出 |
 | [`modules/03-infra`](modules/03-infra/) | 基础设施 / compose | 本地开发 compose 与 profile | 待建 |
 | [`modules/04-agent-provider`](modules/04-agent-provider/) | Agent Provider Config Lib | 可复用的 Provider/Profile/模型配置库 | 参考有（flock / aiswitcher） |
 | [`modules/05-agent-runtime`](modules/05-agent-runtime/) | Agent Runtime | 不绑 UI 的可嵌入 Runtime | 参考有（flock-agent） |
-| [`modules/06-desktop-shell`](modules/06-desktop-shell/) | Tauri 共享打包框架 | Desktop shell / packaging lib；编译缓存见 [`base/desktop-cargo`](../desktop-cargo/) | 缓存已有，shell lib 待建 |
+| [`modules/06-desktop-shell`](modules/06-desktop-shell/) | Tauri 共享打包框架 | Desktop shell / packaging lib；编译缓存见 [`base/innate-go-base/desktop`](../desktop-cargo/) | 缓存已有，shell lib 待建 |
 | [`modules/07-desktop-components`](modules/07-desktop-components/) | Desktop 基础组件 | 跨产品桌面 UI 积木 | 待建 |
 
 横切治理任务：[`tasks/`](tasks/)

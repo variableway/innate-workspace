@@ -20,13 +20,17 @@
 
 ## 02-be-base
 
+栈：Go + Vine（`vine-skill`）。优先 standalone REST + CLI；linked → separated 靠后。
+
 | ID | 文件 | 优先级 | 依赖 |
 |----|------|--------|------|
-| T01 | [modules/02-be-base/tasks/T01-stack-adr.md](modules/02-be-base/tasks/T01-stack-adr.md) | P0 | G01 |
-| T02 | [modules/02-be-base/tasks/T02-scaffold-skeleton.md](modules/02-be-base/tasks/T02-scaffold-skeleton.md) | P0 | T01 |
-| T03 | [modules/02-be-base/tasks/T03-api-conventions.md](modules/02-be-base/tasks/T03-api-conventions.md) | P0 | T02 |
-| T04 | [modules/02-be-base/tasks/T04-be-starter-skill.md](modules/02-be-base/tasks/T04-be-starter-skill.md) | P1 | T03 |
-| T05 | [modules/02-be-base/tasks/T05-prepare-registry.md](modules/02-be-base/tasks/T05-prepare-registry.md) | P2 | T04, G03 |
+| T01 | [modules/02-be-base/tasks/T01-rest-standalone.md](modules/02-be-base/tasks/T01-rest-standalone.md) | P0 | G01 |
+| T02 | [modules/02-be-base/tasks/T02-cli-sample.md](modules/02-be-base/tasks/T02-cli-sample.md) | P0 | T01 |
+| T03 | [modules/02-be-base/tasks/T03-api-conventions.md](modules/02-be-base/tasks/T03-api-conventions.md) | P0 | T01 |
+| T04 | [modules/02-be-base/tasks/T04-linked-mode.md](modules/02-be-base/tasks/T04-linked-mode.md) | P1 | T01, T03 |
+| T05 | [modules/02-be-base/tasks/T05-separated-mode.md](modules/02-be-base/tasks/T05-separated-mode.md) | P2 | T04 |
+| T06 | [modules/02-be-base/tasks/T06-be-starter-skill.md](modules/02-be-base/tasks/T06-be-starter-skill.md) | P1 | T03 |
+| T07 | [modules/02-be-base/tasks/T07-prepare-registry.md](modules/02-be-base/tasks/T07-prepare-registry.md) | P2 | T06, G03 |
 
 ## 03-infra
 
@@ -78,7 +82,7 @@
 
 1. G01、G02  
 2. 03-infra T01→T02  
-3. 02-be-base T01→T02  
+3. 02-be-base T01（REST）→T02（CLI）→T03；T04 linked → T05 separated 靠后  
 4. 04 → 05  
 5. 06：T00（共享 cargo cache，已完成）→ T01…T04，再 07  
 6. 01-fe-base 可全程并行  

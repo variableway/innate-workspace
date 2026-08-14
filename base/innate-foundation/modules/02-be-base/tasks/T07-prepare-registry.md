@@ -3,7 +3,7 @@
 - **状态**：pending
 - **模块**：02-be-base
 - **优先级**：P2
-- **依赖**：T04、G03
+- **依赖**：T06、G03
 
 ## 目标
 
@@ -11,8 +11,8 @@
 
 ## 执行步骤
 
-1. 对照 `docs/registry-checklist.md` 自检
-2. 补齐 README / AGENTS.md / 最小测试或 smoke 脚本
+1. 对照 `docs/registry-checklist.md` 自检（若无则先补 checklist）
+2. 补齐 README / AGENTS.md / 最小测试或 smoke 脚本（覆盖 REST standalone + CLI）
 3. 写 `docs/registry-ready.md`：是否 ready、剩余缺口
 4. **不要**在用户未明确要求时创建远程仓或改父仓 registry
 
@@ -29,5 +29,5 @@
 ## 如何执行
 
 ```text
-请执行 base/innate-foundation/modules/02-be-base/tasks/T05-prepare-registry.md，使用 Local Workflow。
+请执行 base/innate-foundation/modules/02-be-base/tasks/T07-prepare-registry.md，使用 Local Workflow。
 ```

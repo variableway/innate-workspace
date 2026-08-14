@@ -1,0 +1,10 @@
+{
+  "task_file": "modules/02-be-base/tasks/T01-rest-standalone.md",
+  "task_id": "local-20260813-bab6b4d3",
+  "title": "\u4efb\u52a1\uff1aStandalone REST \u670d\u52a1\u6837\u4f8b",
+  "started_at": "2026-08-13 17:06:15",
+  "status": "completed",
+  "tracing_file": "tasks/tracing/T01-rest-standalone.md",
+  "completed_at": "2026-08-13 19:43:28",
+  "summary": "\u843d\u5730 02-be-base standalone REST \u6837\u4f8b\u6e90\u7801 + install-vine.sh + skel \u751f\u6210\uff1b\u56e0 Agent \u6c99\u7bb1\u7f51\u7edc/GOMODCACHE \u9650\u5236\u672a\u80fd\u5728\u4f1a\u8bdd\u5185\u5b8c\u6210 go build/curl \u9a8c\u6536\uff0c\u9700\u672c\u673a\u7ec8\u7aef make build && make run && make smoke\u3002"
+}
