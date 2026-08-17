@@ -37,3 +37,9 @@
 [submodule "projects/agent-kanban/references/LobsterBoard"]
 	path = projects/agent-kanban/references/LobsterBoard
 	url = https://github.com/Curbob/LobsterBoard.git
+[submodule "research/CrouzeixConjecture"]
+	path = research/CrouzeixConjecture
+	url = https://github.com/jinshanmu/CrouzeixConjecture.git
+[submodule "research/Hatano-Nelson"]
+	path = research/Hatano-Nelson
+	url = https://github.com/jinshanmu/Hatano-Nelson.git
