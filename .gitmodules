@@ -25,9 +25,6 @@
 [submodule "projects/innate-tutor"]
 	path = projects/innate-tutor
 	url = https://github.com/variableway/innate-tutor.git
-[submodule "projects/references/Instatic"]
-	path = projects/references/Instatic
-	url = https://github.com/CoreBunch/Instatic.git
 [submodule "projects/reset-from-zero"]
 	path = projects/reset-from-zero
 	url = https://github.com/variableway/reset-from-zero.git
