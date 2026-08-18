@@ -3,7 +3,8 @@
 多项目 AI Agent 统一看板。**产品家路径：`projects/agent-kanban/`**。
 
 需求对齐计划：[`suggestion/08-requirements-aligned-plan.md`](suggestion/08-requirements-aligned-plan.md)  
-架构（双 SoT）：[`shared-context/architecture.md`](shared-context/architecture.md)
+架构（双 SoT）：[`shared-context/architecture.md`](shared-context/architecture.md)  
+自用优先叠加（对照 [Todos.dev](https://todos.dev/docs)）：[`shared-context/self-first-architecture.md`](shared-context/self-first-architecture.md)
 
 ## 结构
 

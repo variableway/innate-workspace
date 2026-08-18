@@ -4,7 +4,8 @@
 > 系统尚未跑通自动循环，因此本目录是 **手工等价物**：列 = 看板列，任务卡 = 未来的 GitHub Issue，正文分区 = Artifact / 审查闸。  
 > 架构：[shared-context/architecture.md](../shared-context/architecture.md)  
 > 闸协议：[modules/review-gates.md](../modules/review-gates.md)  
-> 能力里程碑：[suggestion/08-requirements-aligned-plan.md](../suggestion/08-requirements-aligned-plan.md)
+> 能力里程碑：[suggestion/08-requirements-aligned-plan.md](../suggestion/08-requirements-aligned-plan.md)  
+> 对照：[suggestion/10-vibe-kanban-way-comparison.md](../suggestion/10-vibe-kanban-way-comparison.md)
 
 ---
 

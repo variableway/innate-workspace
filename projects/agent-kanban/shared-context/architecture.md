@@ -3,6 +3,9 @@
 > 对齐需求（2026-08-13）：GitHub 完全同步 · 多 Agent 分配 · 执行文档留存 ·
 > 计划/分配可视化 · 多 Agent 协作协议 · IM 推送。
 > 参考：[Backlog.md](https://github.com/MrLesk/Backlog.md)（Markdown 账本 + Spec→Plan→Code 三关）。
+>
+> **自用优先叠加**（对照 Todos.dev，看板为家、GitHub 改为可选同步、新增 Worker）：
+> [`self-first-architecture.md`](./self-first-architecture.md)。本文件仍是 M1–M4 契约骨架。
 
 ## 一、模块分层架构
 

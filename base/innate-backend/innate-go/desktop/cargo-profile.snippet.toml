@@ -1,0 +1,17 @@
+# Optional snippet to paste into each desktop workspace Cargo.toml.
+# Matching profiles let apps reuse the same compiled tauri/serde/wry units.
+# Different [profile.dev] settings still work, but they compile a second copy.
+
+[profile.dev]
+opt-level = 1
+debug = false
+strip = "debuginfo"
+lto = false
+codegen-units = 16
+
+[profile.release]
+opt-level = "z"
+lto = true
+strip = true
+panic = "abort"
+codegen-units = 1

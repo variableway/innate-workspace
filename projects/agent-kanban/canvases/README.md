@@ -9,6 +9,8 @@
 | 文件 | 说明 |
 |------|------|
 | `requirements-gap-analysis.canvas.tsx` | 需求覆盖矩阵 / Backlog.md 取舍 / M1–M4 落地顺序 |
+| `vibe-kanban-way-comparison.canvas.tsx` | vibe-kanban × kanban-way × 本项目对照 |
+| `todos-dev-self-first-architecture.canvas.tsx` | Todos.dev 对照 / 四层架构 / 自用切片（Worker · 多仓 · 配方） |
 
 ## 用法
 

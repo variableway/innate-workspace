@@ -14,7 +14,7 @@ linked / separated 另有任务，优先级更低。
 
 ## 目标
 
-在 `modules/02-be-base/` 落地最小 Vine REST 应用：standalone 启动、至少一组 HTTP 路由（含 health）、README 可一条命令跑通。
+在 `base/innate-backend/innate-go`（Vine sample：`samples/vine-rest`）落地最小 Vine REST 应用：standalone 启动、至少一组 HTTP 路由（含 health）、README 可一条命令跑通。
 
 ## 执行步骤
 

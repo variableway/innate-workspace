@@ -68,7 +68,7 @@ linked / separated 另有任务，优先级更低。
 
 ### Implementation Summary
 
-合并为 base/innate-go-base：innate-go CLI（desktop-app config + server meta/vine）、meta CRUD、samples/vine-rest、desktop Cargo helpers；Taskfile 管理 build/run；旧 desktop-cargo / tooling 样例改为重定向。
+合并为 base/innate-backend/innate-go：innate-go CLI（desktop-app config + server meta/vine）、meta CRUD、samples/vine-rest、desktop Cargo helpers；Taskfile 管理 build/run；旧 desktop-cargo / tooling 样例改为重定向。
 - **Completed At**: 2026-08-13 19:43:28
 
 ### Implementation Summary

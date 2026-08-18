@@ -1,0 +1,82 @@
+version: "3"
+
+vars:
+  BIN: bin/innate-go
+  META_ADDR: 127.0.0.1:8080
+  META_DB: data/meta.sqlite
+
+tasks:
+  default:
+    desc: Show available tasks
+    cmds:
+      - task --list
+
+  build:
+    desc: Build innate-go CLI (+ server alias)
+    cmds:
+      - mkdir -p bin
+      - go build -o {{.BIN}} ./cmd/innate-go
+      - go build -o bin/server ./cmd/server
+
+  build:cli:
+    desc: Build CLI only
+    cmds:
+      - mkdir -p bin
+      - go build -o {{.BIN}} ./cmd/innate-go
+
+  build:server:
+    desc: Build meta server binary (same as CLI server meta)
+    cmds:
+      - mkdir -p bin
+      - go build -o bin/server ./cmd/server
+
+  test:
+    desc: Run Go tests (meta store)
+    cmds:
+      - go test ./...
+
+  run:server:
+    desc: Start meta CRUD REST (default server)
+    deps: [build]
+    cmds:
+      - ./{{.BIN}} server meta -addr {{.META_ADDR}} -db {{.META_DB}}
+
+  run:meta:
+    desc: Alias of run:server
+    cmds:
+      - task run:server
+
+  run:vine:
+    desc: Start Vine REST sample (needs Go 1.26.5+ and vine)
+    dir: samples/vine-rest
+    cmds:
+      - |
+        if command -v skelc >/dev/null; then
+          skelc check --skel-in ./skel
+          skelc gen go --skel-in ./skel --go-out ./skeled
+        fi
+      - go build -o ../../bin/vine-rest ./cmd/rest-demo
+      - ../../bin/vine-rest
+
+  desktop:config:
+    desc: Print Tauri/desktop shared Cargo config
+    deps: [build:cli]
+    cmds:
+      - INNATE_GO="$(pwd)" ./{{.BIN}} desktop-app config
+
+  desktop:status:
+    desc: Show shared CARGO_TARGET_DIR status
+    deps: [build:cli]
+    cmds:
+      - INNATE_GO="$(pwd)" ./{{.BIN}} desktop-app status
+
+  install:
+    desc: Install innate-go to GOPATH/bin
+    cmds:
+      - go install ./cmd/innate-go
+
+  smoke:meta:
+    desc: curl meta health (server must be running)
+    cmds:
+      - curl -sf http://{{.META_ADDR}}/healthz
+      - echo

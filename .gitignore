@@ -74,3 +74,8 @@ Cargo.lock
 coverage/
 .tmp/
 tmp/
+
+# === local toolchains / caches (02-be-base) ===
+.tools/
+**/vine.sqlite
+**/vine.sqlite-*

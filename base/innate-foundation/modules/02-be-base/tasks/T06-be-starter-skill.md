@@ -13,8 +13,8 @@
 ## 执行步骤
 
 1. 阅读 `base/innate-backend/README.md` 与 `skills/backend-go/SKILL.md`
-2. 按 README 做本地 symlink 安装（Claude / Cursor skills）
-3. 在 `innate-go-base (meta server)` 或 `vine-rest sample` 上按 skill 加一条小改动并验证
+2. 运行 `base/innate-backend/scripts/install-backend-go-skill.sh all`（或 `list` 验证）
+3. 在 `innate-backend/innate-go (meta server)` 或 `vine-rest sample` 上按 skill 加一条小改动并验证
 4. 若缺触发词/禁止事项/路径表，补进 `SKILL.md` 或模块 README
 
 ## 产出

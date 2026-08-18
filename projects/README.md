@@ -10,6 +10,8 @@
 |------|----------|--------|------|
 | innate-aiswitcher | `tooling/innate-aiswitcher` | [variableway/innate-aiswitcher](https://github.com/variableway/innate-aiswitcher) | 本地 LLM Provider 切换器（Go + PocketBase） |
 
+> 原 `innate-meta-api` / `innate-vine-rest` 已合并进 **`base/innate-backend/innate-go`**（CLI `innate-go` + meta server + Vine REST sample + desktop Cargo 配置）。
+
 ## 项目产品类
 
 完整的产品/系统项目。
