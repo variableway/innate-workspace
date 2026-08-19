@@ -33,7 +33,7 @@ When 开始执行，Then 从 Issue body + 项目 Memory + 既有 Artifacts（含
 When 完成，Then 写 `summary` Artifact，发 TIP `complete`；任务进入 `in_review`（不直接 close Issue，除非策略配置）。
 
 ### US-6: 执行日志
-While 执行，Then `note`/`log` Artifact + `kanban_audit_log` 记录步骤、token、耗时。
+While 执行，Then 写 `note`/`log` Artifact 记录步骤；协议层审计由 `kanban_tip_message` 承担（用量计量表已移出契约，见 `suggestion/10`）。
 
 ### US-7: 协作
 When 自身职责完成但仍有后续工作，Then TIP `handoff` 给其他 Agent，而非改别人的 Assignment。

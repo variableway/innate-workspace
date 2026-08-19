@@ -85,3 +85,11 @@ task --taskfile frontend/Taskfile.yml dev
 ```
 
 契约与实现细节见 [`docs/README.md`](docs/README.md)、[`docs/states/task-states.yaml`](docs/states/task-states.yaml)。
+
+## 参考项目分析
+
+`references/` 下有 Backlog.md、ai4kanban、AgentTODO、LobsterBoard、agent-manager 等上游源码。  
+结构化分析（索引 / 共性 / 特性 / 矩阵 / 单项目）见：
+
+- [`references/README.md`](references/README.md)
+- [`references/analysis/`](references/analysis/)

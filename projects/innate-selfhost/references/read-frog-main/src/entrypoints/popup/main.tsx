@@ -1,0 +1,88 @@
+import "@/utils/zod-config"
+import type { Config } from "@/types/config/config"
+import { browser } from "#imports"
+import { QueryClientProvider } from "@tanstack/react-query"
+import { Provider as JotaiProvider } from "jotai"
+import { useHydrateAtoms } from "jotai/utils"
+import * as React from "react"
+import ReactDOM from "react-dom/client"
+import FrogToast from "@/components/frog-toast"
+import { ThemeProvider } from "@/components/providers/theme-provider"
+import { RecoveryBoundary } from "@/components/recovery/recovery-boundary"
+import { TooltipProvider } from "@/components/ui/base-ui/tooltip"
+import { configAtom } from "@/utils/atoms/config"
+import { getLocalConfig } from "@/utils/config/storage"
+import { DEFAULT_CONFIG } from "@/utils/constants/config"
+import { sendMessage } from "@/utils/message"
+import { queryClient } from "@/utils/tanstack-query"
+import App from "./app"
+import { getIsInPatterns, isCurrentSiteInPatternsAtom, isPageTranslatedAtom } from "./atoms/auto-translate"
+import "@/assets/styles/text-small.css"
+import "@/assets/styles/theme.css"
+
+function HydrateAtoms({
+  initialValues,
+  children,
+}: {
+  initialValues: [
+    [typeof configAtom, Config],
+    [typeof isPageTranslatedAtom, boolean],
+    [typeof isCurrentSiteInPatternsAtom, boolean],
+  ]
+  children: React.ReactNode
+}) {
+  useHydrateAtoms(initialValues)
+  return children
+}
+
+async function initApp() {
+  const root = document.getElementById("root")!
+  root.className = "text-base antialiased w-[320px] bg-background"
+  const config = (await getLocalConfig()) ?? DEFAULT_CONFIG
+
+  const activeTab = await browser.tabs.query({
+    active: true,
+    currentWindow: true,
+  })
+
+  const tabId = activeTab[0].id
+
+  let isPageTranslated: boolean = false
+  if (tabId) {
+    isPageTranslated
+      = (await sendMessage("getEnablePageTranslationByTabId", {
+        tabId,
+      })) ?? false
+  }
+
+  const isInPatterns = tabId
+    ? await getIsInPatterns(config.translate)
+    : false
+
+  ReactDOM.createRoot(root).render(
+    <React.StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <JotaiProvider>
+          <HydrateAtoms
+            initialValues={[
+              [configAtom, config],
+              [isPageTranslatedAtom, isPageTranslated],
+              [isCurrentSiteInPatternsAtom, isInPatterns],
+            ]}
+          >
+            <ThemeProvider>
+              <TooltipProvider>
+                <FrogToast />
+                <RecoveryBoundary>
+                  <App />
+                </RecoveryBoundary>
+              </TooltipProvider>
+            </ThemeProvider>
+          </HydrateAtoms>
+        </JotaiProvider>
+      </QueryClientProvider>
+    </React.StrictMode>,
+  )
+}
+
+void initApp()

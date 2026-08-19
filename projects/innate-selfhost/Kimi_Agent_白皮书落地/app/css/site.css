@@ -1,0 +1,75 @@
+/* ═══ 本站增量样式（基于 css/style.css 主题原子） ═══ */
+
+/* 入场动画：IntersectionObserver 触发一次 */
+.rv { opacity: 0; transform: translateY(18px); transition: opacity .7s ease, transform .7s cubic-bezier(.25,.7,.3,1); }
+.rv.in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .rv { opacity: 1 !important; transform: none !important; transition: none !important; }
+  .scroll-hint span { background: var(--ink-lo); }
+}
+
+/* ── 总分 hero 阶梯（chart-score） ── */
+.score-row { display: grid; grid-template-columns: 132px 1fr 64px; gap: 14px; align-items: center; padding: 13px 0; border-bottom: 1px solid var(--line-lo); cursor: pointer; }
+.score-row:first-of-type { border-top: 1px solid var(--line-lo); }
+.score-row:hover { background: var(--paper-hi); }
+.score-row .s-name { font-weight: 700; font-size: 14.5px; line-height: 1.35; }
+.score-row .s-name .s-en { display: block; font-family: var(--mono); font-weight: 400; font-size: 9.5px; letter-spacing: .12em; color: var(--ink-lo); margin-top: 2px; }
+.score-row .s-bar { display: flex; height: 26px; gap: 2px; }
+.score-row .s-seg { height: 100%; position: relative; transition: filter .15s; }
+.score-row .s-seg:hover { filter: brightness(1.18); }
+.score-row .s-total { font-family: var(--mono); font-weight: 700; font-size: 22px; text-align: right; font-variant-numeric: tabular-nums; }
+.score-row .s-total small { font-size: 10px; color: var(--ink-lo); font-weight: 400; }
+.score-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 12px 0 18px; }
+.score-legend .lg { display: flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 10px; letter-spacing: .06em; color: var(--ink-md); }
+.score-legend .lg i { width: 10px; height: 10px; display: inline-block; }
+
+/* ── 矩阵热表（chart-matrix，P5 DOM 版） ── */
+table.mx { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+table.mx th { font-family: var(--mono); font-size: 9.5px; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-md); text-align: center; padding: 8px 6px; border-bottom: 1.5px solid var(--ink); line-height: 1.5; }
+table.mx th.dim-h { text-align: left; min-width: 108px; }
+table.mx td { border: 1px solid var(--line-lo); padding: 7px 8px; text-align: center; vertical-align: middle; }
+table.mx td.dim { text-align: left; font-weight: 700; font-size: 13px; background: var(--paper); }
+table.mx td.dim .d-en { display: block; font-family: var(--mono); font-weight: 400; font-size: 8.5px; letter-spacing: .1em; color: var(--ink-lo); }
+table.mx td.cell { cursor: pointer; font-family: var(--mono); font-weight: 700; font-size: 15px; transition: outline .1s; position: relative; }
+table.mx td.cell:hover { outline: 2px solid var(--red); outline-offset: -2px; }
+table.mx td.cell .c-note { display: block; font-family: var(--serif); font-weight: 400; font-size: 10px; color: var(--ink-md); line-height: 1.45; margin-top: 3px; }
+table.mx tr.total-row td { border-top: 1.5px solid var(--ink); border-bottom: 1.5px solid var(--ink); background: var(--paper); font-family: var(--mono); font-weight: 700; font-size: 16px; }
+table.mx tr.total-row td.dim { font-size: 12px; }
+.mx-plan { font-weight: 700; font-size: 12.5px; font-family: var(--serif); text-transform: none; letter-spacing: 0; color: var(--ink); }
+.mx-plan .p-total { display: block; font-family: var(--mono); font-size: 9px; color: var(--ink-lo); margin-top: 2px; }
+
+/* ── 分层速查表 / 应用类型表 ── */
+.tbl-wrap { overflow-x: auto; }
+.tbl-note { font-family: var(--mono); font-size: 10px; color: var(--ink-lo); margin: 10px 0 4px; }
+
+/* ── 风险台账 ── */
+.sev { display: inline-block; font-family: var(--mono); font-size: 9.5px; font-weight: 700; letter-spacing: .06em; border: 1.5px solid; border-radius: 3px; padding: 0 6px; white-space: nowrap; }
+.sev.hi { color: var(--neg); border-color: var(--neg); }
+.sev.md { color: var(--copper); border-color: var(--copper); }
+.sev.lo { color: var(--ink-lo); border-color: var(--ink-lo); }
+.risk-row { cursor: pointer; }
+table.dt td .r-title { font-weight: 700; }
+
+/* ── 验证清单 ── */
+#checklist { margin: 14px 0 8px; }
+.chk { display: grid; grid-template-columns: 26px 1fr; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line-lo); }
+.chk:first-child { border-top: 1px solid var(--line-lo); }
+.chk .box { width: 15px; height: 15px; border: 1.5px solid var(--ink); border-radius: 3px; margin-top: 4px; cursor: pointer; position: relative; transition: background .15s; }
+.chk.done .box { background: var(--red); border-color: var(--red); }
+.chk.done .box::after { content: "✓"; position: absolute; inset: 0; color: #fff; font-size: 11px; line-height: 14px; text-align: center; font-family: var(--mono); }
+.chk .c-name { font-weight: 700; font-size: 14px; cursor: pointer; }
+.chk.done .c-name { color: var(--ink-lo); text-decoration: line-through; }
+.chk .c-note { font-size: 12.5px; color: var(--ink-md); margin-top: 3px; line-height: 1.65; }
+
+/* ── 来源登记册 ── */
+.src-row { cursor: default; }
+.src-row .s-k { font-family: var(--mono); font-weight: 700; font-size: 11px; color: var(--red); margin-right: 8px; }
+.src-row .s-cite a { color: var(--ink-md); word-break: break-all; }
+
+/* ── SVG 通用 ── */
+.chart-frame svg { display: block; }
+.chart-frame svg text { user-select: none; }
+.drillable { cursor: pointer; }
+
+/* 封面四态按钮允许 4 个 */
+.cover-mode { flex-wrap: wrap; }

@@ -1,0 +1,26 @@
+{
+  "database": {
+    "name": "twillot",
+    "version": 40
+  },
+  "tables": [
+    {
+      "name": "posts",
+      "recordCount": 5646
+    },
+    {
+      "name": "settings",
+      "recordCount": 5
+    },
+    {
+      "name": "users",
+      "recordCount": 0
+    }
+  ],
+  "backupTimestamp": "2025-08-23T12:46:19.794Z",
+  "backupType": "manual",
+  "deviceInfo": {
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36",
+    "platform": "MacIntel"
+  }
+}

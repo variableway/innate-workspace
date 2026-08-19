@@ -1,0 +1,122 @@
+import type { APIProviderConfig, LLMProviderConfig } from "@/types/config/provider"
+import { i18n } from "#imports"
+import { useStore } from "@tanstack/react-form"
+import { useEffect, useEffectEvent, useMemo, useState } from "react"
+import { HelpTooltip } from "@/components/help-tooltip"
+import { Field, FieldError, FieldLabel } from "@/components/ui/base-ui/field"
+import { JSONCodeEditor } from "@/components/ui/json-code-editor"
+import { useDebouncedValue } from "@/hooks/use-debounced-value"
+import { isLLMProviderConfig } from "@/types/config/provider"
+import { resolveModelId } from "@/utils/providers/model"
+import { getProviderOptions } from "@/utils/providers/options"
+import { withForm } from "./form"
+
+function parseJson(input: string): { valid: true, value: Record<string, unknown> | undefined } | { valid: false, error: string } {
+  if (!input.trim()) {
+    return { valid: true, value: undefined }
+  }
+  try {
+    return { valid: true, value: JSON.parse(input) }
+  }
+  catch {
+    return { valid: false, error: i18n.t("options.apiProviders.form.invalidJson") }
+  }
+}
+
+export const ProviderOptionsField = withForm({
+  ...{ defaultValues: {} as APIProviderConfig },
+  render: function Render({ form }) {
+    const providerConfig = useStore(form.store, state => state.values)
+    const isLLMProvider = isLLMProviderConfig(providerConfig)
+
+    const toJson = (options: APIProviderConfig["providerOptions"]) =>
+      options ? JSON.stringify(options, null, 2) : ""
+
+    // Local state for the JSON string input
+    const [jsonInput, setJsonInput] = useState(() => toJson(providerConfig.providerOptions))
+
+    // Keep editor input in sync when switching to a different provider config.
+    const syncJsonInput = useEffectEvent(() => {
+      // eslint-disable-next-line react-hooks-extra/no-direct-set-state-in-use-effect
+      setJsonInput(toJson(providerConfig.providerOptions))
+    })
+
+    useEffect(() => {
+      syncJsonInput()
+    }, [providerConfig.id])
+
+    // Debounce the input value
+    const debouncedJsonInput = useDebouncedValue(jsonInput, 500)
+
+    // Derive parse result from debounced value
+    const parseResult = useMemo(() => parseJson(debouncedJsonInput), [debouncedJsonInput])
+
+    // Submit when debounced value changes and is valid
+    useEffect(() => {
+      if (parseResult.valid) {
+        form.setFieldValue("providerOptions", parseResult.value)
+        void form.handleSubmit()
+      }
+    }, [parseResult, form])
+
+    const translateModel = useMemo(() => {
+      if (!isLLMProvider) {
+        return null
+      }
+      const llmConfig = providerConfig as LLMProviderConfig
+      return resolveModelId(llmConfig.model)
+    }, [isLLMProvider, providerConfig])
+
+    const defaultOptions = useMemo(() => {
+      if (!isLLMProvider || !translateModel) {
+        return {}
+      }
+      const options = getProviderOptions(translateModel, providerConfig.provider)
+      return options[providerConfig.provider] || {}
+    }, [isLLMProvider, translateModel, providerConfig.provider])
+
+    const placeholderText = useMemo(() => {
+      if (Object.keys(defaultOptions).length === 0) {
+        return "{\n  \n}"
+      }
+      return JSON.stringify(defaultOptions, null, 2)
+    }, [defaultOptions])
+
+    if (!isLLMProvider) {
+      return null
+    }
+
+    const jsonError = !parseResult.valid ? parseResult.error : null
+
+    return (
+      <Field>
+        <FieldLabel>
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center gap-1.5">
+              <span>{i18n.t("options.apiProviders.form.providerOptions")}</span>
+              <HelpTooltip>{i18n.t("options.apiProviders.form.providerOptionsHint")}</HelpTooltip>
+            </div>
+            <a
+              href="https://ai-sdk.dev/providers/ai-sdk-providers"
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs text-link hover:opacity-90"
+            >
+              {i18n.t("options.apiProviders.form.providerOptionsDocsLink")}
+            </a>
+          </div>
+        </FieldLabel>
+        <JSONCodeEditor
+          value={jsonInput}
+          onChange={setJsonInput}
+          placeholder={placeholderText}
+          hasError={!!jsonError}
+          height="150px"
+        />
+        {jsonError && (
+          <FieldError>{jsonError}</FieldError>
+        )}
+      </Field>
+    )
+  },
+})

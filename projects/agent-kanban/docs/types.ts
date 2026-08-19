@@ -95,7 +95,7 @@ export interface Workspace {
   id: string;
   name: string;
   description: string;
-  userId: string | null;        // null in Zero-Auth mode
+  userId: string | null;        // nullable until auth is wired
   createdAt: string;            // ISO 8601
   updatedAt: string;
 }

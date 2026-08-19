@@ -1,0 +1,49 @@
+# ===== 本仓库自有状态 / 工具本地文件 =====
+# git-workflow skill 的本地状态文件（随时变化，勿入库）
+.git-workflow.state.json
+# Workbuddy 工具本地记忆
+.workbuddy/
+
+# ===== 嵌套的独立 Skill 仓库 =====
+# 以下子目录是各自独立克隆的 git 仓库（内嵌 .git），本仓库不重复纳入版本管理。
+# 按根 README 的设计，它们由 ../scripts/clone.py 拉取。
+# 若想真正跟踪某个子仓库，删除对应行并改用 `git submodule add <url> <path>`。
+/devops-skill/
+/figures-skill/
+/fin-skills/
+/fire-skills/
+/presentation-skills/
+/sdlc-skills/
+/wip-skills/
+
+# ===== macOS =====
+.DS_Store
+
+# ===== 编辑器 / IDE =====
+.idea/
+.vscode/
+*.swp
+*~
+
+# ===== 环境变量 / 密钥 =====
+.env
+.env.*
+!.env.example
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ===== Node =====
+node_modules/
+dist/
+build/
+npm-debug.log*
+pnpm-debug.log*
+
+# ===== 日志 =====
+*.log

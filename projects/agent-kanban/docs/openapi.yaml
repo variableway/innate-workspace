@@ -744,7 +744,7 @@ components:
       type: apiKey
       in: header
       name: X-API-Key
-      description: 可选。Zero-Auth 模式下不需要。生产环境启用时在 header 传 X-API-Key。
+      description: 可选。未启用认证时不需要。生产环境启用时在 header 传 X-API-Key。
 
   parameters:
     WorkspaceId:

@@ -1,9 +1,8 @@
 # 项目注册表
-# 由 scripts/sync-registry.py 扫描同步；也可手工追加。
+# 由 scripts/scan.py 自动生成，可手动补充 desc 字段
 # clone.py 会读取此文件，按 path 字段 clone 到对应目录
 
 projects:
-  # === skills ===
   - name: devops-skill
     repo: https://github.com/qdriven/devops-skill.git
     path: skills/devops-skill
@@ -39,13 +38,27 @@ projects:
     path: skills/wip-skills
     desc: 这是一个用来实验SKILL的暂时仓库。
 
-  # === base ===
   - name: innate-fe-base
     repo: https://github.com/variableway/innate-fe-templates.git
     path: base/innate-fe-base
     desc: Innate 前端模板项目集合
 
-  # === projects ===
+  - name: agent-kanban
+    repo: https://github.com/qdriven/capture-board.git
+    path: projects/agent-kanban
+
+  - name: agent-way
+    repo: https://github.com/variableway/agent-way.git
+    path: projects/agent-way
+
+  - name: innate-ai-industry
+    repo: https://github.com/qdriven/innate-ai-industry.git
+    path: projects/innate-ai-industry
+
+  - name: innate-keepthem
+    repo: https://github.com/variableway/innate-keepthem.git
+    path: projects/innate-keepthem
+
   - name: innate-tutor
     repo: https://github.com/variableway/innate-tutor.git
     path: projects/innate-tutor
@@ -65,13 +78,3 @@ projects:
     repo: https://github.com/variableway/innate-aiswitcher.git
     path: projects/tooling/innate-aiswitcher
     desc: 本地 LLM Provider 切换器，Go + PocketBase
-
-  - name: AgentTODO
-    repo: https://github.com/alanhsun/AgentTODO.git
-    path: projects/agent-kanban/references/AgentTODO
-    desc: agent-kanban 参考项目
-
-  - name: LobsterBoard
-    repo: https://github.com/Curbob/LobsterBoard.git
-    path: projects/agent-kanban/references/LobsterBoard
-    desc: agent-kanban 参考项目

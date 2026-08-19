@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS kanban_workspace (
   id          TEXT PRIMARY KEY,
   name        TEXT NOT NULL,
   description TEXT NOT NULL DEFAULT '',
-  user_id     TEXT,                                    -- 关联 better-auth user.id (nullable for Zero-Auth mode)
+  user_id     TEXT,                                    -- 关联 better-auth user.id (nullable)
   created_at  TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -110,35 +110,6 @@ CREATE INDEX IF NOT EXISTS idx_kanban_assignments_task   ON kanban_assignment(ta
 CREATE INDEX IF NOT EXISTS idx_kanban_assignments_agent  ON kanban_assignment(agent_id);
 CREATE INDEX IF NOT EXISTS idx_kanban_assignments_status ON kanban_assignment(status);
 
--- ───────────────────────────────────────────────────────────────
--- Agent Audit Log: 执行日志 (可选, P2)
--- ───────────────────────────────────────────────────────────────
-CREATE TABLE IF NOT EXISTS kanban_audit_log (
-  id              TEXT PRIMARY KEY,
-  assignment_id   TEXT REFERENCES kanban_assignment(id) ON DELETE CASCADE,
-  agent_id        TEXT REFERENCES kanban_agent(id) ON DELETE SET NULL,
-  event           TEXT NOT NULL,                        -- pickup | model_call | skill_call | success | fail | timeout
-  detail          TEXT NOT NULL DEFAULT '{}',           -- JSON
-  tokens_used     INTEGER,
-  duration_ms     INTEGER,
-  created_at      TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
-CREATE INDEX IF NOT EXISTS idx_kanban_audit_assignment ON kanban_audit_log(assignment_id);
-CREATE INDEX IF NOT EXISTS idx_kanban_audit_agent      ON kanban_audit_log(agent_id);
-
--- ───────────────────────────────────────────────────────────────
--- Webhook Subscriptions: 事件订阅 (可选, P2)
--- ───────────────────────────────────────────────────────────────
-CREATE TABLE IF NOT EXISTS kanban_webhook_subscription (
-  id          TEXT PRIMARY KEY,
-  name        TEXT NOT NULL,
-  url         TEXT NOT NULL,
-  events      TEXT NOT NULL DEFAULT '["*"]',            -- JSON array, * = all
-  is_active   INTEGER NOT NULL DEFAULT 1,
-  created_at  TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
 -- ═══════════════════════════════════════════════════════════════
--- End of schema. Total: 7 tables, 9 indexes.
+-- End of schema. Total: 5 tables, 8 indexes.
 -- ═══════════════════════════════════════════════════════════════

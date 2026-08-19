@@ -34,7 +34,7 @@ When 未配置任何渠道，Then 系统静默跳过，不影响主流程。
 | F2 | 事件订阅 | P0 | 哪些 event → 哪些 channel |
 | F3 | 模板渲染 | P0 | 每渠道一套 Markdown/卡片模板 |
 | F4 | 投递与重试 | P0 | 失败指数退避 3 次；记 delivery log |
-| F5 | 通用 webhook | P0 | 兼容现有 `kanban_webhook_subscription` |
+| F5 | 通用 webhook | P0 | `channel_type=webhook` 的 notify_channel（原通用订阅表已移出契约，见 `suggestion/10`） |
 | F6 | Slack | P1 | Incoming Webhook 或 Bot |
 | F7 | 飞书 | P1 | 自定义机器人 webhook |
 | F8 | 钉钉 | P1 | 加签机器人 |
@@ -43,7 +43,7 @@ When 未配置任何渠道，Then 系统静默跳过，不影响主流程。
 
 ## 四、渠道模型
 
-扩展原 `kanban_webhook_subscription`，或并列 `kanban_notify_channel`：
+统一为 `kanban_notify_channel`（`channel_type=webhook` 即通用出站）：
 
 | 字段 | 说明 |
 |------|------|

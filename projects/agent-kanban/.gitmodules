@@ -1,0 +1,15 @@
+[submodule "references/Backlog.md"]
+	path = references/Backlog.md
+	url = https://github.com/MrLesk/Backlog.md.git
+[submodule "references/ai4kanban"]
+	path = references/ai4kanban
+	url = https://github.com/ai4kanban/ai4kanban.git
+[submodule "references/AgentTODO"]
+	path = references/AgentTODO
+	url = https://github.com/alanhsun/AgentTODO.git
+[submodule "references/LobsterBoard"]
+	path = references/LobsterBoard
+	url = https://github.com/Curbob/LobsterBoard.git
+[submodule "references/agent-manager"]
+	path = references/agent-manager
+	url = https://github.com/YoanWai/agent-manager.git
