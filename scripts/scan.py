@@ -139,9 +139,16 @@ def read_existing(registry: Path) -> list[dict]:
 
 
 def section_of(path: str) -> str:
-    """The section an entry belongs to: references/ and innate-apps/ are grouped by their second-level dir, others by first-level dir."""
+    """The section an entry belongs to.
+
+    references/ keeps its prefix and is grouped by second-level dir
+    (e.g. references/fe). innate-apps/ is grouped by its category folder
+    name (e.g. tooling). Other paths are grouped by first-level dir.
+    """
     parts = path.split("/")
     if len(parts) > 1 and parts[0] in ("references", "innate-apps"):
+        if parts[0] == "innate-apps":
+            return parts[1]
         return f"{parts[0]}/{parts[1]}"
     return parts[0]
 
@@ -200,7 +207,7 @@ DESC_BY_SECTION = {
     "references/solutions": "Solutions reference projects",
     "references/tooling": "Tooling reference projects",
     "references/tutorials": "Tutorials/learning materials reference projects",
-    "innate-apps/tooling": "Personal tooling apps",
+    "tooling": "Personal tooling apps",
 }
 
 

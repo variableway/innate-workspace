@@ -2,7 +2,7 @@
 # Synced by scripts/scan-innate-apps.py: source of truth is actual dir contents; entries are added/moved/deleted and desc is preserved
 
 projects:
-  # === innate-apps/tooling ===
+  # === tooling ===
   - name: innate-aiswitcher
     repo: https://github.com/variableway/innate-aiswitcher.git
     path: innate-apps/tooling/innate-aiswitcher
