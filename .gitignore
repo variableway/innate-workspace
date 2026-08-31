@@ -1,0 +1,92 @@
+# === 自定义 ===
+archive/
+data/
+
+# === OS ===
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# === IDE / Editor ===
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.settings/
+*.sublime-workspace
+*.sublime-project
+
+# === Go ===
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+bin/
+vendor/
+
+# === Python ===
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+
+# === Node.js / TypeScript ===
+node_modules/
+*.tsbuildinfo
+.npm
+.pnpm-store/
+.next/
+.nuxt/
+.output/
+.turbo/
+
+# === Rust ===
+target/
+Cargo.lock
+
+# === 通用 ===
+*.log
+*.pid
+*.seed
+.env
+.env.local
+.env.*.local
+.cache/
+coverage/
+.tmp/
+tmp/
+
+# === local toolchains / caches (02-be-base) ===
+.tools/
+**/vine.sqlite
+**/vine.sqlite-*
+.mimocode/
+.workbuddy/
+.agents/
+references/
+references-skills/
+projects/
+innatespace/
+base/
+data/
+innate-apps/
+
