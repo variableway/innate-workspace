@@ -17,6 +17,9 @@ Merge rules (source of truth is actual directory contents):
     (--keep-missing keeps it)
   - --regenerate ignores the existing registry and rebuilds entirely from scan results
     (existing desc / name is not preserved, use with caution)
+
+The innate-apps directory has its own registry (registry-innate-apps.yaml),
+handled by scripts/scan-innate-apps.py.
 """
 
 import argparse
@@ -25,7 +28,7 @@ import sys
 from pathlib import Path
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
-SCAN_DIRS = ["skills", "base", "projects", "references","innate-apps"]
+SCAN_DIRS = ["skills", "base", "projects", "references"]
 REGISTRY = ROOT_DIR / "registry.yaml"
 DEFAULT_DEPTH = 3
 
@@ -107,11 +110,11 @@ def scan_dir(name: str, max_depth: int) -> list[dict]:
     return found
 
 
-def read_existing() -> list[dict]:
+def read_existing(registry: Path) -> list[dict]:
     """Read the existing registry entry list (preserving original order)."""
-    if not REGISTRY.exists():
+    if not registry.exists():
         return []
-    text = REGISTRY.read_text(encoding="utf-8")
+    text = registry.read_text(encoding="utf-8")
     try:
         import yaml
 
@@ -136,15 +139,20 @@ def read_existing() -> list[dict]:
 
 
 def section_of(path: str) -> str:
-    """The section an entry belongs to: references/ is grouped by its second-level dir, others by first-level dir."""
+    """The section an entry belongs to: references/ and innate-apps/ are grouped by their second-level dir, others by first-level dir."""
     parts = path.split("/")
-    if parts[0] == "references" and len(parts) > 1:
-        return f"references/{parts[1]}"
+    if len(parts) > 1 and parts[0] in ("references", "innate-apps"):
+        return f"{parts[0]}/{parts[1]}"
     return parts[0]
 
 
-def write_registry(projects: list[dict]) -> None:
-    """Write registry.yaml grouped by section."""
+def write_registry(
+    projects: list[dict],
+    registry: Path,
+    synced_by: str = "scripts/scan.py",
+    consumed_by: str | None = "clone.py",
+) -> None:
+    """Write a registry grouped by section."""
     order: list[str] = []
     groups: dict[str, list[dict]] = {}
     for p in projects:
@@ -156,11 +164,12 @@ def write_registry(projects: list[dict]) -> None:
 
     lines = [
         "# Project registry",
-        "# Synced by scripts/scan.py: source of truth is actual dir contents; entries are added/moved/deleted and desc is preserved",
-        "# clone.py reads this file and clones each project into its path field",
-        "",
-        "projects:",
+        f"# Synced by {synced_by}: source of truth is actual dir contents; entries are added/moved/deleted and desc is preserved",
     ]
+    if consumed_by:
+        lines.append(f"# {consumed_by} reads this file and clones each project into its path field")
+    lines.append("")
+    lines.append("projects:")
     for key in order:
         lines.append(f"  # === {key} ===")
         for p in groups[key]:
@@ -175,7 +184,7 @@ def write_registry(projects: list[dict]) -> None:
     if lines and lines[-1] == "":
         lines.pop()
 
-    REGISTRY.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    registry.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
 # Default desc filled per section when a newly discovered entry lacks desc
@@ -191,6 +200,7 @@ DESC_BY_SECTION = {
     "references/solutions": "Solutions reference projects",
     "references/tooling": "Tooling reference projects",
     "references/tutorials": "Tutorials/learning materials reference projects",
+    "innate-apps/tooling": "Personal tooling apps",
 }
 
 
@@ -260,6 +270,58 @@ def merge(
     }
 
 
+def run(
+    scan_dirs: list[str],
+    registry: Path,
+    depth: int = DEFAULT_DEPTH,
+    keep_missing: bool = False,
+    regenerate: bool = False,
+    synced_by: str = "scripts/scan.py",
+    consumed_by: str | None = "clone.py",
+) -> None:
+    """Scan the given directories and merge the results into a registry file."""
+    existing = [] if regenerate else read_existing(registry)
+    discovered: list[dict] = []
+    for d in scan_dirs:
+        found = scan_dir(d, depth)
+        discovered.extend(found)
+        if found:
+            print(f"[{d}] found {len(found)} repos (depth={depth}):")
+            for p in found:
+                print(f"    {p['path']}  ->  {p['repo']}")
+        else:
+            print(f"[{d}] no git repos found")
+        print()
+
+    final, changes = merge(existing, discovered, keep_missing=keep_missing)
+
+    if changes["added"]:
+        print(f"[added] {len(changes['added'])}:")
+        for p in changes["added"]:
+            print(f"    {p['path']}  ->  {p['repo']}")
+    if changes["moved"]:
+        print(f"[moved] {len(changes['moved'])} (matched by repo URL, path updated):")
+        for m in changes["moved"]:
+            print(f"    {m}")
+    if changes["dup"]:
+        print(f"[dedup] {len(changes['dup'])} (same as an already-registered repo, skipped):")
+        for p in changes["dup"]:
+            print(f"    {p}")
+    if changes["missing"]:
+        action = "kept" if keep_missing else "removed"
+        print(f"[{action}] {len(changes['missing'])} directories no longer exist:")
+        for p in changes["missing"]:
+            print(f"    {p['path']}")
+    print()
+
+    write_registry(final, registry, synced_by=synced_by, consumed_by=consumed_by)
+    print(
+        f"==> Wrote {registry.relative_to(ROOT_DIR)}, "
+        f"total {len(final)} projects (original {len(existing)}, "
+        f"added {len(changes['added'])}, removed {0 if keep_missing else len(changes['missing'])})"
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Recursively scan directories, discover git repos and merge them into registry.yaml"
@@ -287,47 +349,12 @@ def main() -> None:
         help="Ignore the existing registry and rebuild entirely from scan results (existing name/desc not preserved)",
     )
     args = parser.parse_args()
-    scan_dirs = args.dirs or SCAN_DIRS
-
-    existing = [] if args.regenerate else read_existing()
-    discovered: list[dict] = []
-    for d in scan_dirs:
-        found = scan_dir(d, args.depth)
-        discovered.extend(found)
-        if found:
-            print(f"[{d}] found {len(found)} repos (depth={args.depth}):")
-            for p in found:
-                print(f"    {p['path']}  ->  {p['repo']}")
-        else:
-            print(f"[{d}] no git repos found")
-        print()
-
-    final, changes = merge(existing, discovered, keep_missing=args.keep_missing)
-
-    if changes["added"]:
-        print(f"[added] {len(changes['added'])}:")
-        for p in changes["added"]:
-            print(f"    {p['path']}  ->  {p['repo']}")
-    if changes["moved"]:
-        print(f"[moved] {len(changes['moved'])} (matched by repo URL, path updated):")
-        for m in changes["moved"]:
-            print(f"    {m}")
-    if changes["dup"]:
-        print(f"[dedup] {len(changes['dup'])} (same as an already-registered repo, skipped):")
-        for p in changes["dup"]:
-            print(f"    {p}")
-    if changes["missing"]:
-        action = "kept" if args.keep_missing else "removed"
-        print(f"[{action}] {len(changes['missing'])} directories no longer exist:")
-        for p in changes["missing"]:
-            print(f"    {p['path']}")
-    print()
-
-    write_registry(final)
-    print(
-        f"==> Wrote {REGISTRY.relative_to(ROOT_DIR)}, "
-        f"total {len(final)} projects (original {len(existing)}, "
-        f"added {len(changes['added'])}, removed {0 if args.keep_missing else len(changes['missing'])})"
+    run(
+        args.dirs or SCAN_DIRS,
+        REGISTRY,
+        depth=args.depth,
+        keep_missing=args.keep_missing,
+        regenerate=args.regenerate,
     )
 
 
