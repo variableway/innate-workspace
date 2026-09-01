@@ -1,29 +1,19 @@
 #!/usr/bin/env python3
-"""Read a registry and batch clone / update projects by declared path.
+"""Shared clone / update logic for scripts/clone-references.py and scripts/clone-innate.py.
 
-Defaults to the innate registry (registry-innate.yaml), so running
-`python3 scripts/clone.py` clones / updates the innate projects.
-Use --registry to target another file, e.g.:
-    python3 scripts/clone.py --registry registry.yaml
-to operate on the full workspace registry instead.
+- clone-references.py operates on registry.yaml (skills / base / projects / references)
+- clone-innate.py operates on registry-innate.yaml (innate apps + base templates)
+
+Both call run() here: missing repos are cloned into their declared path, and
+already-existing repos are updated with `git pull` (fetch + fast-forward merge).
 """
 
-import argparse
 import json
 import subprocess
 import sys
 from pathlib import Path
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
-
-
-def find_registry() -> Path | None:
-    # Innate projects are the default; pass --registry to clone the full workspace instead.
-    for name in ("registry-innate.yaml", "registry.yaml", "registry.yml", "registry.json"):
-        p = ROOT_DIR / name
-        if p.exists():
-            return p
-    return None
 
 
 def parse_registry(path: Path) -> list[dict]:
@@ -71,7 +61,7 @@ def run_git(args: list[str], cwd: Path) -> subprocess.CompletedProcess[str]:
 
 
 def update_repo(target: Path, repo: str) -> str:
-    """Fetch and fast-forward the existing repo. Returns status label."""
+    """Fetch and fast-forward an existing repo (i.e. `git pull --ff-only`). Returns status label."""
     remote = run_git(["remote", "get-url", "origin"], target)
     if remote.returncode == 0:
         current = remote.stdout.strip()
@@ -118,22 +108,8 @@ def update_repo(target: Path, repo: str) -> str:
     return "updated"
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Read a registry file and batch clone / update projects by declared path"
-    )
-    parser.add_argument(
-        "--registry",
-        type=Path,
-        default=None,
-        help="Registry file to use (default: registry-innate.yaml; use --registry registry.yaml for the full workspace)",
-    )
-    args = parser.parse_args()
-
-    registry = args.registry if args.registry is not None else find_registry()
-    if not registry:
-        print("[ERROR] cannot find a registry (use --registry <file>)")
-        sys.exit(1)
+def run(registry: Path) -> None:
+    """Clone / update every project declared in the given registry file."""
     if not registry.exists():
         print(f"[ERROR] registry file not found: {registry}")
         sys.exit(1)
@@ -194,4 +170,8 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    print(
+        "This module is a shared library. "
+        "Use scripts/clone-references.py (registry.yaml) "
+        "or scripts/clone-innate.py (registry-innate.yaml)."
+    )

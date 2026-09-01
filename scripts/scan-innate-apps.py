@@ -50,7 +50,7 @@ def main() -> None:
         keep_missing=args.keep_missing,
         regenerate=args.regenerate,
         synced_by="scripts/scan-innate-apps.py",
-        consumed_by=None,
+        consumed_by="clone-innate.py",
     )
 
 

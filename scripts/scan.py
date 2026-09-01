@@ -157,7 +157,7 @@ def write_registry(
     projects: list[dict],
     registry: Path,
     synced_by: str = "scripts/scan.py",
-    consumed_by: str | None = "clone.py",
+    consumed_by: str | None = "clone-references.py",
 ) -> None:
     """Write a registry grouped by section."""
     order: list[str] = []
@@ -286,7 +286,7 @@ def run(
     keep_missing: bool = False,
     regenerate: bool = False,
     synced_by: str = "scripts/scan.py",
-    consumed_by: str | None = "clone.py",
+    consumed_by: str | None = "clone-references.py",
 ) -> None:
     """Scan the given directories and merge the results into a registry file."""
     existing = [] if regenerate else read_existing(registry)
