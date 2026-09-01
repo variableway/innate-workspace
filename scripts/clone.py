@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""Read a registry (registry.yaml / registry-innate.yaml / registry.json) and batch clone / update projects by declared path.
+"""Read a registry and batch clone / update projects by declared path.
 
-Use --registry to target a specific registry file, e.g.:
-    python3 scripts/clone.py --registry registry-innate.yaml
-to clone / update only the innate-related projects.
+Defaults to the innate registry (registry-innate.yaml), so running
+`python3 scripts/clone.py` clones / updates the innate projects.
+Use --registry to target another file, e.g.:
+    python3 scripts/clone.py --registry registry.yaml
+to operate on the full workspace registry instead.
 """
 
 import argparse
