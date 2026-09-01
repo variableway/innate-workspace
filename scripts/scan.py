@@ -18,8 +18,8 @@ Merge rules (source of truth is actual directory contents):
   - --regenerate ignores the existing registry and rebuilds entirely from scan results
     (existing desc / name is not preserved, use with caution)
 
-The innate-apps directory has its own registry (registry-innate-apps.yaml),
-handled by scripts/scan-innate-apps.py.
+The innate-apps and base directories have their own registry
+(registry-innate.yaml), handled by scripts/scan-innate-apps.py.
 """
 
 import argparse
@@ -208,6 +208,8 @@ DESC_BY_SECTION = {
     "references/tooling": "Tooling reference projects",
     "references/tutorials": "Tutorials/learning materials reference projects",
     "tooling": "Personal tooling apps",
+    "content": "Content-related apps",
+    "base": "Innate base/template projects",
 }
 
 
