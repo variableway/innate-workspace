@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
-"""Read registry.yaml / registry.json and batch clone / update projects by declared path."""
+"""Read a registry (registry.yaml / registry-innate.yaml / registry.json) and batch clone / update projects by declared path.
 
+Use --registry to target a specific registry file, e.g.:
+    python3 scripts/clone.py --registry registry-innate.yaml
+to clone / update only the innate-related projects.
+"""
+
+import argparse
 import json
 import subprocess
 import sys
@@ -10,7 +16,8 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 
 
 def find_registry() -> Path | None:
-    for name in ("registry.yaml", "registry.yml", "registry.json"):
+    # Innate projects are the default; pass --registry to clone the full workspace instead.
+    for name in ("registry-innate.yaml", "registry.yaml", "registry.yml", "registry.json"):
         p = ROOT_DIR / name
         if p.exists():
             return p
@@ -110,9 +117,23 @@ def update_repo(target: Path, repo: str) -> str:
 
 
 def main() -> None:
-    registry = find_registry()
+    parser = argparse.ArgumentParser(
+        description="Read a registry file and batch clone / update projects by declared path"
+    )
+    parser.add_argument(
+        "--registry",
+        type=Path,
+        default=None,
+        help="Registry file to use (default: registry-innate.yaml; use --registry registry.yaml for the full workspace)",
+    )
+    args = parser.parse_args()
+
+    registry = args.registry if args.registry is not None else find_registry()
     if not registry:
-        print("[ERROR] cannot find registry.yaml / registry.json")
+        print("[ERROR] cannot find a registry (use --registry <file>)")
+        sys.exit(1)
+    if not registry.exists():
+        print(f"[ERROR] registry file not found: {registry}")
         sys.exit(1)
 
     print(f"==> Registry: {registry.name}")
