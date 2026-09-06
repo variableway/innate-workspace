@@ -1,0 +1,28 @@
+# Traefik 统一反向代理（非懒猫环境使用）
+# 懒猫私有云自带网关，无需此配置
+
+services:
+  traefik:
+    image: traefik:v3.0
+    container_name: selfhost-traefik
+    restart: unless-stopped
+    command:
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - selfhost-net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.dashboard.service=api@internal"
+
+networks:
+  selfhost-net:
+    external: true

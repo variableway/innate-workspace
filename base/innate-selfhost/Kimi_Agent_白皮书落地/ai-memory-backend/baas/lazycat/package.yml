@@ -1,0 +1,10 @@
+# 懒猫应用静态元数据（LPK V2 规范：元数据与运行结构分离）
+package: cloud.lazycat.app.selfhost-baas
+version: 1.0.0
+name: 自托管 BaaS（PostgreSQL + PostgREST + Authentik + MinIO + Mercure）
+description: >-
+  去 Supabase 化的开源自托管后端即服务栈：ParadeDB（Postgres+pgvector+pg_search）数据库、
+  PostgREST 自动 REST API、Authentik 认证、MinIO 对象存储、Mercure 实时推送。
+  每一层可独立替换，无供应商锁定。
+author: AI Memory & Backend 项目
+homepage: https://developer.lazycat.cloud/

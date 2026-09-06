@@ -1,0 +1,7 @@
+# Copy this file next to each desktop app's Cargo.toml (or workspace root)
+# as `rust-toolchain.toml` so rustc fingerprints stay compatible across apps.
+# Shared CARGO_TARGET_DIR is invalidated when rustc versions differ.
+
+[toolchain]
+channel = "stable"
+components = ["clippy", "rustfmt"]

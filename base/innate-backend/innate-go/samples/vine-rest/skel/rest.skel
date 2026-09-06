@@ -1,0 +1,15 @@
+domain innate.bedemo
+
+pub actor ClientActor {
+    via openapi {}
+}
+
+pub data Item {
+    id: int
+    name: string
+    price: int
+}
+
+web RestDemoWeb {
+    for ClientActor via openapi
+}

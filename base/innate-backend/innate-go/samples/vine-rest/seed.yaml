@@ -1,0 +1,17 @@
+portalSites:
+  - name: rest-demo-web
+    type: WEBGW
+    actorSkelName: innate.bedemo.ClientActor
+    actorVia: openapi
+    cors:
+      mode: DISABLED
+    webName: innate.bedemo.RestDemoWeb
+
+portalRules:
+  - name: rest-demo-http
+    scheme: http
+    host: ""
+    port: 18081
+    pathPrefix: ""
+    targetType: SITE
+    siteName: rest-demo-web
