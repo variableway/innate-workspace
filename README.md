@@ -1,27 +1,30 @@
-# innate-works
+# README
 
-个人 AI 辅助开发工作空间，按用途分三个目录。
+Innate Workspace and Project indexes.
 
-## 目录结构
+This workspace is the source of an Innate-related documentation site, covering Innate skills, projects and reference docs, plus small personal-use tools built with AI.
 
-| 目录 | 用途 |
-|------|------|
-| [`skills/`](skills/) | AI Agent Skill 集合，放所有可复用的 Skill 仓库 |
-| [`base/`](base/) | 基础代码模板与脚手架 |
-| [`projects/`](projects/) | 具体项目，按类型分子目录存放 |
+## Innate Apps
 
-各目录详见其下的 README。
+Build Apps for personal use. Each subfolder under [`innate-apps/`](innate-apps/) is a category. Innate-related projects (apps plus [`base/`](base/) templates) are indexed in [`registry-innate.yaml`](registry-innate.yaml), synced by [`scripts/scan-innate-apps.py`](scripts/scan-innate-apps.py).
 
-## 克隆 / 更新
+### Categories
 
-所有子项目统一在 `registry.yaml` 中注册，并由 `.gitmodules` 提供 submodule URL 映射。
+| Category | Description | Projects |
+|----------|-------------|----------|
+| `content` | Content-related apps | innate-feeds, innate-wip |
+| `edu` | Education-related apps | _empty_ |
+| `tooling` | Personal dev tools and CLI utilities | innate-aiswitcher, spark-cli |
 
-```bash
-# 推荐：按 registry 克隆缺失项目，并拉取各仓库最新代码（fast-forward）
-python3 scripts/clone.py
+### Projects
 
-# 仅初始化/对齐到父仓库锁定的 commit（可能不是各子仓最新）
-git submodule update --init
-```
-
-> 注意：不要依赖 `git submodule update` 获取“最新代码”；它只会 checkout 父仓库记录的固定 SHA。要最新请用 `scripts/clone.py`。
+| Category | Project | Description |
+|----------|---------|-------------|
+| `content` | [innate-feeds](innate-apps/content/innate-feeds) | GitHub trending / starred / issues-digest feed app (Hono + SQLite API or static GitHub Pages). |
+| `content` | [innate-wip](innate-apps/content/innate-wip) | Personal website & project tracking with GitHub Issues integration and weekly progress summaries (Next.js). |
+| `tooling` | [innate-aiswitcher](innate-apps/tooling/innate-aiswitcher) | Local LLM Provider switcher for AI coding agents (Go + PocketBase). Select the Provider/Profile to use when starting Claude Code, Codex, Gemini CLI, Trae CLI, OpenCode etc. |
+| `tooling` | [spark-cli](innate-apps/tooling/spark-cli) | CLI for daily dev automation and AI skill integration: multi-repo git management, script/task workflows, system utilities (Go, Cobra). |
+| `base` | [innate-fe-base](base/innate-fe-base) | pnpm monorepo for Web client development: shared UI primitives, admin scene templates and reference apps. |
+| `content` | [ai-content-os](innate-apps/content/innate-feeds/ai-content-os) | AI content production OS for WeChat 公众号 creators: topic discovery → AI writing → publishing (third-party). |
+| `content` | [baoyu-skills](innate-apps/content/innate-feeds/baoyu-skills) | Baoyu's AI Agent skills for daily work efficiency (Claude Code, Codex, third-party). |
+| `base` | [oil-frontend](base/innate-fe-base/suggestion/oil-frontend) | Agent Skill set constraining AI product frontend implementation (third-party). |

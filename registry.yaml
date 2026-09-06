@@ -1,5 +1,6 @@
 # 项目注册表
-# 由 scripts/scan.py 自动生成，可手动补充 desc 字段
+
+# 由 scripts/scan.py 扫描同步：以目录实际内容为准，新增/移动/删除条目并保留 desc
 # clone.py 会读取此文件，按 path 字段 clone 到对应目录
 
 projects:
@@ -33,10 +34,189 @@ projects:
     path: skills/sdlc-skills
     desc: 软件开发生命周期（Software Development Life Cycle）技能集合，为 AI Agent 提供覆盖完整软件开发流程的专业能力。
 
-  - name: wip-skills
-    repo: https://github.com/qdriven/wip-skills.git
-    path: skills/wip-skills
-    desc: 这是一个用来实验SKILL的暂时仓库。
+  - name: andrej-karpathy-skills
+    repo: https://github.com/multica-ai/andrej-karpathy-skills.git
+    path: skills/figures-skill/andrej-karpathy-skills
+
+  - name: darwin-skill
+    repo: https://github.com/alchaincyf/darwin-skill.git
+    path: skills/figures-skill/darwin-skill
+
+  - name: elon-musk-skill
+    repo: https://github.com/alchaincyf/elon-musk-skill.git
+    path: skills/figures-skill/elon-musk-skill
+
+  - name: feynman-skill
+    repo: https://github.com/alchaincyf/feynman-skill.git
+    path: skills/figures-skill/feynman-skill
+
+  - name: human-skill-tree
+    repo: https://github.com/24kchengYe/human-skill-tree.git
+    path: skills/figures-skill/human-skill-tree
+
+  - name: mrbeast-skill
+    repo: https://github.com/alchaincyf/mrbeast-skill.git
+    path: skills/figures-skill/mrbeast-skill
+
+  - name: munger-skill
+    repo: https://github.com/alchaincyf/munger-skill.git
+    path: skills/figures-skill/munger-skill
+
+  - name: paul-graham-skill
+    repo: https://github.com/alchaincyf/paul-graham-skill.git
+    path: skills/figures-skill/paul-graham-skill
+
+  - name: taleb-skill
+    repo: https://github.com/alchaincyf/taleb-skill.git
+    path: skills/figures-skill/taleb-skill
+
+  - name: trump-skill
+    repo: https://github.com/alchaincyf/trump-skill.git
+    path: skills/figures-skill/trump-skill
+
+  - name: zhang-yiming-skill
+    repo: https://github.com/alchaincyf/zhang-yiming-skill.git
+    path: skills/figures-skill/zhang-yiming-skill
+
+  - name: zhangxuefeng-skill
+    repo: https://github.com/alchaincyf/zhangxuefeng-skill.git
+    path: skills/figures-skill/zhangxuefeng-skill
+
+  - name: OpenTrade
+    repo: https://github.com/OpenTradeOSS/OpenTrade.git
+    path: skills/fin-skills/OpenTrade
+
+  - name: TradingAgents-astock
+    repo: https://github.com/simonlin1212/TradingAgents-astock.git
+    path: skills/fin-skills/TradingAgents-astock
+
+  - name: a-stock-data
+    repo: https://github.com/simonlin1212/a-stock-data.git
+    path: skills/fin-skills/a-stock-data
+
+  - name: ai-market-maker
+    repo: https://github.com/olaxbt/ai-market-maker.git
+    path: skills/fin-skills/ai-market-maker
+
+  - name: nautilus_trader
+    repo: https://github.com/nautechsystems/nautilus_trader.git
+    path: skills/fin-skills/nautilus_trader
+
+  - name: LifeOS
+    repo: https://github.com/danielmiessler/LifeOS.git
+    path: skills/fire-skills/references/LifeOS
+
+  - name: qling
+    repo: https://github.com/Zzy-min/qling.git
+    path: skills/fire-skills/references/qling
+
+  - name: skill-deck
+    repo: https://github.com/Hccake/skill-deck.git
+    path: skills/fire-skills/references/skill-deck
+
+  - name: skillkit
+    repo: https://github.com/robotbird/skillkit.git
+    path: skills/fire-skills/references/skillkit
+
+  - name: skills
+    repo: https://github.com/Hccake/skills.git
+    path: skills/fire-skills/references/skills
+
+  - name: baoyu-design
+    repo: https://github.com/JimLiu/baoyu-design.git
+    path: skills/presentation-skills/baoyu-design
+
+  - name: dashi-ppt-skill
+    repo: https://github.com/chuspeeism/dashi-ppt-skill.git
+    path: skills/presentation-skills/dashi-ppt-skill
+
+  - name: dashi-taskboard
+    repo: https://github.com/chuspeeism/dashi-taskboard.git
+    path: skills/presentation-skills/dashi-taskboard
+
+  - name: speclip-skills
+    repo: https://github.com/linyqh/speclip-skills.git
+    path: skills/presentation-skills/speclip-skills
+
+  - name: baoyu-skills-studio
+    repo: https://github.com/luoianun/baoyu-skills-studio.git
+    path: skills/sdlc-skills/baoyu-skills-studio
+
+  - name: oil-frontend
+    repo: https://github.com/oil-oil/oil-frontend.git
+    path: skills/sdlc-skills/oil-frontend
+
+  - name: 21st-frontend-design
+    repo: https://github.com/sants2001/21st-frontend-design.git
+    path: skills/sdlc-skills/sdlc/21st-frontend-design
+
+  - name: Earnest-Portfolio-New
+    repo: https://github.com/earnest-s/Earnest-Portfolio-New.git
+    path: skills/sdlc-skills/sdlc/Earnest-Portfolio-New
+
+  - name: UI-Deslopify-Skill
+    repo: https://github.com/AntonioSpagnol/UI-Deslopify-Skill.git
+    path: skills/sdlc-skills/sdlc/UI-Deslopify-Skill
+
+  - name: avoid-ai-design
+    repo: https://github.com/funboy322/avoid-ai-design.git
+    path: skills/sdlc-skills/sdlc/avoid-ai-design
+
+  - name: awesome-claude-code-skills
+    repo: https://github.com/helloianneo/awesome-claude-code-skills.git
+    path: skills/sdlc-skills/sdlc/awesome-claude-code-skills
+
+  - name: cc-skills-golang
+    repo: https://github.com/samber/cc-skills-golang.git
+    path: skills/sdlc-skills/sdlc/cc-skills-golang
+
+  - name: dev-skills
+    repo: https://github.com/jamestorrevillas/dev-skills.git
+    path: skills/sdlc-skills/sdlc/dev-skills
+
+  - name: frontend-design-engineer-skill
+    repo: https://github.com/angelapaia/frontend-design-engineer-skill.git
+    path: skills/sdlc-skills/sdlc/frontend-design-engineer-skill
+
+  - name: frontend-design-masterclass
+    repo: https://github.com/aaaronmiller/frontend-design-masterclass.git
+    path: skills/sdlc-skills/sdlc/frontend-design-masterclass
+
+  - name: frontend-slides-editable
+    repo: https://github.com/archlizheng/frontend-slides-editable.git
+    path: skills/sdlc-skills/sdlc/frontend-slides-editable
+
+  - name: golang-skills
+    repo: https://github.com/cxuu/golang-skills.git
+    path: skills/sdlc-skills/sdlc/golang-skills
+
+  - name: harness-anchor
+    repo: https://github.com/Redtropig/harness-anchor.git
+    path: skills/sdlc-skills/sdlc/harness-anchor
+
+  - name: lnikita
+    repo: https://github.com/Nigismo/lnikita.git
+    path: skills/sdlc-skills/sdlc/lnikita
+
+  - name: my-portfolio
+    repo: https://github.com/Northstrix/my-portfolio.git
+    path: skills/sdlc-skills/sdlc/my-portfolio
+
+  - name: skills
+    repo: https://github.com/mattpocock/skills.git
+    path: skills/sdlc-skills/sdlc/skills
+
+  - name: superpowers
+    repo: https://github.com/obra/superpowers.git
+    path: skills/sdlc-skills/sdlc/superpowers
+
+  - name: taste-skill
+    repo: https://github.com/Leonxlnx/taste-skill.git
+    path: skills/sdlc-skills/sdlc/taste-skill
+
+  - name: ui-pro-magic
+    repo: https://github.com/NeousAxis/ui-pro-magic.git
+    path: skills/sdlc-skills/sdlc/ui-pro-magic
 
   - name: innate-fe-base
     repo: https://github.com/variableway/innate-fe-templates.git
@@ -61,18 +241,8 @@ projects:
 
   - name: innate-tutor
     repo: https://github.com/variableway/innate-tutor.git
-    path: projects/innate-tutor
+    path: projects/interative-edu/innate-tutor
     desc: AI Interactive Education 产品，整合 DeepTutor 与 OpenMAIC
-
-  - name: Instatic
-    repo: https://github.com/CoreBunch/Instatic.git
-    path: projects/references/Instatic
-    desc: 参考项目
-
-  - name: reset-from-zero
-    repo: https://github.com/variableway/reset-from-zero.git
-    path: projects/reset-from-zero
-    desc: AI Agent 辅助的项目分析与重构集合
 
   - name: innate-aiswitcher
     repo: https://github.com/variableway/innate-aiswitcher.git

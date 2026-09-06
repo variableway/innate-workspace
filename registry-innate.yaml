@@ -1,0 +1,47 @@
+# Project registry
+# Synced by scripts/scan-innate-apps.py: source of truth is actual dir contents; entries are added/moved/deleted and desc is preserved
+# clone-innate.py reads this file and clones each project into its path field
+
+projects:
+  # === content ===
+  - name: innate-feeds
+    repo: https://github.com/variableway/innate-feeds.git
+    path: innate-apps/content/innate-feeds
+    desc: Content-related apps
+
+  - name: ai-content-os
+    repo: https://github.com/Maxwelliu/ai-content-os.git
+    path: innate-apps/content/innate-feeds/ai-content-os
+    desc: Content-related apps
+
+  - name: baoyu-skills
+    repo: https://github.com/JimLiu/baoyu-skills.git
+    path: innate-apps/content/innate-feeds/baoyu-skills
+    desc: Content-related apps
+
+  - name: innate-wip
+    repo: https://github.com/variableway/innate-wip.git
+    path: innate-apps/content/innate-wip
+    desc: Content-related apps
+
+  # === tooling ===
+  - name: innate-aiswitcher
+    repo: https://github.com/variableway/innate-aiswitcher.git
+    path: innate-apps/tooling/innate-aiswitcher
+    desc: Personal tooling apps
+
+  - name: spark-cli
+    repo: https://github.com/variableway/spark-cli.git
+    path: innate-apps/tooling/spark-cli
+    desc: Personal tooling apps
+
+  # === base ===
+  - name: innate-fe-base
+    repo: https://github.com/variableway/innate-fe-templates.git
+    path: base/innate-fe-base
+    desc: Innate base/template projects
+
+  - name: oil-frontend
+    repo: https://github.com/oil-oil/oil-frontend.git
+    path: base/innate-fe-base/suggestion/oil-frontend
+    desc: Innate base/template projects

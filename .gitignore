@@ -79,3 +79,13 @@ tmp/
 .tools/
 **/vine.sqlite
 **/vine.sqlite-*
+.mimocode/
+.workbuddy/
+.agents/
+references/
+references-skills/
+projects/
+innatespace/
+data/
+innate-apps/
+
