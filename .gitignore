@@ -75,6 +75,114 @@ coverage/
 .tmp/
 tmp/
 
+# === 二进制 / 大文件 ===
+# 图片
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.tiff
+*.tif
+*.webp
+*.ico
+*.icns
+*.psd
+*.ai
+*.eps
+
+# 音频 / 视频
+*.mp3
+*.wav
+*.ogg
+*.flac
+*.aac
+*.wma
+*.m4a
+*.mp4
+*.avi
+*.mov
+*.wmv
+*.flv
+*.mkv
+*.webm
+*.m4v
+
+# 字体
+*.woff
+*.woff2
+*.ttf
+*.eot
+*.otf
+
+# 压缩包
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.tar.bz2
+*.tar.xz
+*.gz
+*.bz2
+*.xz
+*.rar
+*.7z
+*.Z
+
+# 文档
+*.pdf
+*.doc
+*.docx
+*.xls
+*.xlsx
+*.ppt
+*.pptx
+*.odt
+*.ods
+*.odp
+
+# ML / 模型权重
+*.wasm
+*.pb
+*.onnx
+*.tflite
+*.caffemodel
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.h5
+*.hdf5
+*.pkl
+*.pickle
+*.npy
+*.npz
+*.joblib
+*.model
+
+# 数据库
+*.sqlite
+*.sqlite3
+*.db
+*.mdb
+
+# 编译产物 / 二进制
+*.o
+*.a
+*.lib
+*.obj
+*.class
+*.pyc
+*.pyo
+*.pdb
+
+# 大型 JSON / JSONL
+*.jsonl
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+bun.lock
+
 # === local toolchains / caches (02-be-base) ===
 .tools/
 **/vine.sqlite

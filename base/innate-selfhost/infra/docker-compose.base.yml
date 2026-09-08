@@ -1,0 +1,9 @@
+# 公共网络定义
+# 所有服务通过此网络互联
+# 使用方式：docker network create selfhost-net
+# 或通过 scripts/setup.sh 自动创建
+
+networks:
+  selfhost-net:
+    external: true
+    name: selfhost-net

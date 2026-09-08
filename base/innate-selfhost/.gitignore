@@ -1,0 +1,44 @@
+# Environment files (contain secrets)
+.env
+!.env.example
+!*.env.example
+
+# Docker volumes (persisted data, not tracked)
+data/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Node
+node_modules/
+.next/
+dist/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# LazyCat build artifacts
+*.lpk
+services/*/lazycat/content/
+
+# Logs
+*.log
+
+# Backup archives
+backups/
+*.tar.gz
+*.dump

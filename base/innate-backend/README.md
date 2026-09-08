@@ -43,6 +43,39 @@
 
 默认使用 **symlink** 指向 `skills/backend-go/`；离线/打包场景加 `--copy`。
 
+## 全局 `.tools`（Go / Vine 工具链）
+
+默认把 Go、vine/skelc 源码克隆、GOMODCACHE 放在 **`~/.tools`**，所有仓库共用（不再依赖 `innate-works/.tools`）。
+
+**一次性配置**（写入 `~/.zshrc` 并迁移已有仓库 `.tools`）：
+
+```bash
+cd base/innate-backend
+chmod +x scripts/setup-global-tools.sh scripts/tools-env.sh
+./scripts/setup-global-tools.sh
+source ~/.zshrc   # 或新开终端
+./scripts/install-vine.sh --with-go
+```
+
+| 变量 | 含义 |
+|------|------|
+| `INNATE_TOOLS_DIR` | 工具根目录（默认 `~/.tools`） |
+| `GOMODCACHE` | 默认 `$INNATE_TOOLS_DIR/gomodcache` |
+
+解析优先级：`INNATE_TOOLS_DIR` → 仓库内 `.tools`（若存在）→ `~/.tools`。
+
+仅查看当前解析结果：
+
+```bash
+./scripts/setup-global-tools.sh --check
+```
+
+手动加载（不修改 shell 配置）：
+
+```bash
+source base/innate-backend/scripts/tools-env.sh
+```
+
 ## 可执行工程
 
 ```bash
