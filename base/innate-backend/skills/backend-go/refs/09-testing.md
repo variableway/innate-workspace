@@ -21,8 +21,8 @@ separate Hub/Link/Portal processes only for real lease/network/TLS tests.
 | `testkit.ConfigOverride{Name, Value}` | 覆盖项。An override entry. |
 | `runtime.NewExecution(option) *Execution` | 创建一次调用执行上下文。Create a call execution. |
 | `testkit.ExecutionOption{Context, Trace, Initiator, Actor}` | 执行元数据；nil 用 absent actor + 新 trace。Execution metadata; nil -> absent actor + new trace. |
-| `testkit.NewClient[C](*Execution) C` | 生成普通 Rpc client 绑定到该执行。Generated ordinary Rpc client bound to the execution. |
-| `testkit.NewClientER[C](*Execution) C` | 生成 error-returning Rpc client。Generated error-returning Rpc client. |
+| `(*Execution).NewClient[C]() C` | 生成普通 Rpc client 绑定到该执行。Generated ordinary Rpc client bound to the execution. |
+| `(*Execution).NewClientER[C]() C` | 生成 error-returning Rpc client。Generated error-returning Rpc client. |
 
 ## A handler test / handler 测试
 
@@ -33,7 +33,7 @@ func TestGreeting(t *testing.T) {
     execution := runtime.NewExecution(testkit.ExecutionOption{
         Actor: meta.NewAnonymousActor(), // 模拟一个未认证调用者 / simulate unauthenticated caller
     })
-    client := testkit.NewClient[skeled.GreetingServiceClient](execution)
+    client := execution.NewClient[skeled.GreetingServiceClient]()
 
     got := client.Hello("Vine")
     require.Equal(t, "Hello, Vine", got.Message)
@@ -96,7 +96,7 @@ timeout, duplicate delivery, and graceful shutdown. Handlers must be idempotent.
 func TestUserCreatedListener(t *testing.T) {
     runtime := testkit.StartStandalone[*AccountApp](t, testkit.Option{})
     exec := runtime.NewExecution(testkit.ExecutionOption{Actor: meta.NewAnonymousActor()})
-    emitter := testkit.NewClient[skeled.UserCreatedEventEmitter](exec)
+    emitter := exec.NewClient[skeled.UserCreatedEventEmitter]()
 
     emitter.EmitUserCreated(&skeled.UserCreatedEvent{EventId: id1, UserId: uid})
 

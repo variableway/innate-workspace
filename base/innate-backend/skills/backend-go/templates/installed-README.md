@@ -1,13 +1,12 @@
 # backend-go (installed)
 
-> **Do not edit here.** Source: [`base/innate-backend/skills/backend-go/`](../../skills/backend-go/).
-> Reinstall all agents: `base/innate-backend/scripts/install-backend-go-skill.sh all`
+> **Do not edit here.** Source: `base/innate-backend/skills/backend-go/`  
+> Reinstall: `base/innate-backend/scripts/install-backend-go-skill.sh all`
 
-| Task | Skill |
+| Task | Where |
 |------|-------|
-| Go + Vine 后端、REST/CLI/微服务 | [`backend-go`](./backend-go/SKILL.md) |
+| Go + Vine 后端（本 skill） | [`backend-go/SKILL.md`](./backend-go/SKILL.md) |
+| 新建 Vine standalone | [`backend-go/templates/vine-standalone/`](./backend-go/templates/vine-standalone/) |
+| 跑 / 改可运行样例 | `base/innate-backend/innate-go`（meta CRUD + `samples/vine-rest`） |
 
-样例工程：
-
-- Vine REST：`base/innate-backend/innate-go/samples/vine-rest`
-- Meta CRUD：`base/innate-backend/innate-go`
+基线：最新 Vine（`@latest`）；Go / skelc 跟该 Vine。

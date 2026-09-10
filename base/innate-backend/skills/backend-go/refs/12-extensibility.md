@@ -1,14 +1,14 @@
 # 12 · Extensibility Boundary / 可扩展性边界
 
-> Bilingual. Grounded in Vine v0.12 `app/api.go`, `internal/app/component.go`, and
-> `internal/app/app_impl_init.go`. / 双语；事实依据为 Vine v0.12 源码。
+> Bilingual. Grounded in current Vine `app/api.go` (`ManagedComponent`, `ComponentManager`)
+> and manager init. / 双语；事实依据为当前 Vine 公开 API。
 
 ## 1. One line / 一句话
 
 Application Components, Modules, filters, and DI are open extension points. Vine's
-`FrameworkComponent` implementations, built-in capabilities, MQ, and configuration
-source are framework-controlled. / 应用级 Component、Module、filter 与 DI 可以扩展；
-`FrameworkComponent`、内置能力、MQ 和配置源由框架控制。
+`ManagedComponent` implementations (Redis/RDB managers), built-in capabilities, MQ, and
+configuration source are framework-controlled. / 应用级 Component、Module、filter 与 DI 可以扩展；
+`ManagedComponent`、内置能力、MQ 和配置源由框架控制。
 
 Do not confuse Vine's public `infra/*` facade with an application's folder named
 `internal/infra`, `internal/platform`, or `adapter`. Package names do not decide business
@@ -28,9 +28,11 @@ ownership. / 不要把 Vine 的 `infra/*` facade 与应用自己的目录名混�
 
 Although the public API exposes the name `BaseModule`, it aliases Vine's ordinary
 `BaseComponent`. A type embedding it satisfies the ordinary Component contract and may
-be registered through `InitComponents`. The sealed type is `FrameworkComponent`, not
-every Component. / `app.BaseModule` 是普通 `BaseComponent` 的公开别名；嵌入它的类型可以通过
-`InitComponents` 注册。封闭的是 `FrameworkComponent`，不是所有 Component。
+be registered through `InitComponents`. Native Redis/RDB-style components embed
+`app.BaseManagedComponent[M]` and are initialized by an `app.ComponentManager`;
+application code can implement that pair but cannot add a new
+framework-owned infra family without changing Vine. / `app.BaseModule` 是普通
+`BaseComponent` 的公开别名。对标 Redis/RDB 的托管组件用 `ManagedComponent` + manager。
 
 ## 3. Component or Module? / 选 Component 还是 Module
 
@@ -103,15 +105,15 @@ Consequences / 结论：
 
 | Closed/framework-controlled | Practical consequence / 实际影响 |
 | --- | --- |
-| `FrameworkComponent` implementations | Application code cannot create a new native `infra/foo` equivalent to `rdb.Database`/`redis.Redis` |
+| `ManagedComponent` families (Redis/RDB managers) | Application code can embed `BaseManagedComponent[M]` + implement `ComponentManager`; it cannot add a new Vine-owned `infra/foo` equivalent without changing Vine |
 | Event/Task MQ | NATS is built into the runtime topology; replacing it requires Vine changes |
 | Rpc/Web/Event/Task capability specs | Adding a new built-in protocol/capability requires Vine changes |
 | Configuration source | Hub-backed configuration is part of the runtime contract |
 
 An application can still wrap Mongo, Kafka, ES, or S3 in an ordinary Component or
-Module. What it cannot do is add a new framework-native `FrameworkComponent` family
+Module. What it cannot do is add a new framework-native `ManagedComponent` infra family
 without changing Vine itself. / 应用仍可用普通 Component 或 Module 包装 Mongo/Kafka/ES/S3；
-不能在不修改 Vine 的情况下新增框架原生 `FrameworkComponent` 家族。
+不能在不修改 Vine 的情况下新增框架原生 infra 家族。
 
 ## 6. Decision matrix / 决策表
 

@@ -104,10 +104,10 @@ flag 名 `kebab-case`，env 名 `VINE_UPPER_SNAKE`。/ Convention: every flag pa
 
 ```go
 &ucli.StringFlag{
-    Name:    "api-listen",
-    Sources: ucli.EnvVars("VINE_API_LISTEN"),
+    Name:    "control-listen",
+    Sources: ucli.EnvVars("VINE_CONTROL_LISTEN"),
     Value:   "127.0.0.1:7071", // 默认值 / default
-    Usage:   "hub API listen address",
+    Usage:   "hub Control API listen address",
 }
 ```
 

@@ -9,9 +9,7 @@ portalSites:
 
 portalRules:
   - name: rest-demo-http
-    scheme: http
-    host: ""
-    port: 18081
-    pathPrefix: ""
-    targetType: SITE
-    siteName: rest-demo-web
+    matchScheme: http
+    matchPort: 18081
+    routeType: SITE
+    routeSiteName: rest-demo-web

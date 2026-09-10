@@ -1,6 +1,6 @@
 module github.com/variableway/innate-go/samples/vine-rest
 
-go 1.26.5
+go 1.27.1
 
 require (
 	github.com/gin-gonic/gin v1.12.0

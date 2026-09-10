@@ -17,14 +17,12 @@ export GOBIN="${GOPATH}/bin"
 export GOMODCACHE="${INNATE_TOOLS_DIR}/gomodcache"
 export GOCACHE="${INNATE_TOOLS_DIR}/gocache"
 
-# Prefer pinned toolchain under INNATE_TOOLS_DIR when present
+# Prefer the newest toolchain under INNATE_TOOLS_DIR when present
 _innate_go_root=""
-for _ver_dir in "${INNATE_TOOLS_DIR}"/go*/; do
-  [[ -x "${_ver_dir}bin/go" ]] || continue
-  _innate_go_root="${_ver_dir%/}"
-  break
-done
-unset _ver_dir
+if compgen -G "${INNATE_TOOLS_DIR}/go*/bin/go" >/dev/null 2>&1; then
+  _innate_go_root="$(printf '%s\n' "${INNATE_TOOLS_DIR}"/go*/ | sed 's:/*$::' | sort -V | tail -1)"
+  [[ -x "${_innate_go_root}/bin/go" ]] || _innate_go_root=""
+fi
 
 if [[ -n "${_innate_go_root}" ]]; then
   export GOROOT="${_innate_go_root}"

@@ -111,7 +111,7 @@ func TestGreeting(t *testing.T) {
     execution := runtime.NewExecution(testkit.ExecutionOption{
         Actor: meta.NewAnonymousActor(),
     })
-    client := testkit.NewClient[skeled.GreetingServiceClient](execution)
+    client := execution.NewClient[skeled.GreetingServiceClient]()
 
     got := client.Hello("Vine")
     require.Equal(t, "Hello, Vine", got.Message)
@@ -139,8 +139,12 @@ go test ./path/to/package -run TestName
 
 ```bash
 mkdir vine-hello && cd vine-hello
+# 或直接拷贝 skill 脚手架 / or copy the skill scaffold:
+#   cp -R <skill>/templates/vine-standalone .
 go mod init example.com/vine-hello
-go get go.yorun.ai/vine@v0.9.0   # 生产用审核过的 tag/commit；教程可用 @main
+go get go.yorun.ai/vine@latest
+go install go.yorun.ai/vine/cmd/vine@latest
+go install go.yorun.ai/skelc/cmd/skelc@latest
 # 写 main.go（见上），然后 / then:
 go run .
 ```
@@ -149,10 +153,6 @@ go run .
 / Next: author a `.skel` contract, run `skelc gen go`, then register the implementation.
 
 ```bash
-# 安装 CLI / install CLIs (pin reviewed revisions for releases)
-go install go.yorun.ai/vine/cmd/vine@main
-go install go.yorun.ai/skelc/cmd/skelc@main
-
 skelc check  --skel-in ./skel
 skelc gen go --skel-in ./skel --go-out ./skeled
 ```

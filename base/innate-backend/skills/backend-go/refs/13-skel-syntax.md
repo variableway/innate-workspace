@@ -19,9 +19,8 @@ skelc gen ts --skel-in ./skel --ts-out ./skeled  # 生成 TypeScript / generate 
 ```
 
 生成代码是构建产物--改 `.skel` 后重新生成，**不要手改** `skeled/`。生成 schema 记录 skelc
-版本，Vine 运行时拒绝低于 `MinSkelcVersion()`（当前 `v0.9.0`）的 schema。/ Generated code is
-build output; regenerate, never hand-edit. Schemas record the skelc version; the runtime
-rejects schemas below `MinSkelcVersion()` (currently `v0.9.0`).
+版本，Vine 运行时拒绝低于 `MinSkelcVersion()` 的 schema（以**当前 Vine** 为准，不要写死数字）。
+升级 Vine 时用满足该下限的 skelc 重新生成；有参数/结果的 Rpc 方法必须带 clone hook。
 
 ## File skeleton / 文件骨架
 
@@ -171,8 +170,10 @@ config FeatureFlagsConfig instant { // 订阅更新，新执行看新值 / watch
 }
 ```
 
-生成类型自动注册 Skel 名/Go 类型/生命周期；**不要手工注册**。/ Generated types auto-register;
-don't register by hand.
+生成类型自动注册 Skel 名/Go 类型/生命周期；**不要手工注册**。配置字符串默认去掉首尾 Unicode
+空白（含 nullable、list 元素、map 值；map key / JSON 内容 / named scalar 不 trim）。要保留空白，
+在对应 Go 字段上加 `skel:"noTrim"`（`sensitive` 不会保空白；Skel 语言侧注解尚未覆盖此项）。
+/ Generated types auto-register. Config strings trim by default; opt out with `skel:"noTrim"`.
 
 ### actor
 

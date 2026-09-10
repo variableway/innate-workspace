@@ -54,49 +54,52 @@ appConfigs:
 
 ## portalRules - 入口与路由规则（entry + route）
 
-一条 `portalRule` 描述一个监听入口（scheme/host/port/pathPrefix）以及它路由到哪个 site 或重定向。
-对应 Portal 的 `portal:rule:*`。/ A `portalRule` describes a listener entry (scheme/host/port/
-pathPrefix) and where it routes (a site or a redirect). Maps to Portal's `portal:rule:*`.
+一条 `portalRule` 描述一个监听入口（matchScheme/host/port/pathPrefix）以及它路由到哪个 site 或重定向。
+对应 Portal 的 `portal:rule:*`。/ A `portalRule` describes a listener entry and where it routes.
 
 ```yaml title="seed.yaml (portalRules)"
 portalRules:
   - name: admin
-    scheme: https
-    pathPrefix: /admin
-    targetType: SITE
-    siteName: admin-site
+    matchScheme: https
+    matchPathPrefix: /admin
+    routeType: SITE
+    routeSiteName: admin-site
   - name: api
-    scheme: http
-    port: 8080
-    pathPrefix: /api
-    targetType: PERMANENT_REDIRECT
-    redirectionPattern: https://demo.local
+    matchScheme: http
+    matchPort: 8080
+    matchPathPrefix: /api
+    routeType: PERMANENT_REDIRECT
+    routeRedirectionPattern: https://demo.local
   - name: hosted
-    scheme: http
-    host: demo.local
-    port: 8080
-    pathPrefix: /
-    targetType: SITE
-    siteName: home-site
+    matchScheme: http
+    matchHost: demo.local
+    matchPort: 8080
+    matchPathPrefix: /
+    routeType: SITE
+    routeSiteName: home-site
+    routePathPrefix: /internal   # 可选：转发前替换已匹配的 path 前缀 / optional rewrite
 ```
 
 | Field | Type | Note |
 | --- | --- | --- |
 | `name` | string | 规则名 / rule name |
-| `scheme` | string | `http`/`https`/`tcp` / scheme |
-| `host` | string | 主机名（SNI/Host 匹配）/ host match |
-| `port` | int | 端口；0 表示默认 / port; 0 = default |
-| `pathPrefix` | string | 路径前缀 / path prefix |
-| `targetType` | string | `SITE` / `PERMANENT_REDIRECT` / `TEMPORARY_REDIRECT` |
-| `siteName` | string | `targetType: SITE` 时指向 `portalSites` 里的 site / target site name |
-| `redirectionPattern` | string | 重定向目标（`*_REDIRECT` 时用）/ redirect target |
+| `matchScheme` | string | `http`/`https`/`tcp` |
+| `matchHost` | string | 主机名（SNI/Host 匹配）/ host match |
+| `matchPort` | int | 端口；0 表示默认 / port; 0 = default |
+| `matchPathPrefix` | string | 路径前缀 / path prefix |
+| `routeType` | string | `SITE` / `PERMANENT_REDIRECT` / `TEMPORARY_REDIRECT` |
+| `routeSiteName` | string | `routeType: SITE` 时指向 `portalSites` 里的 site |
+| `routeRedirectionPattern` | string | 重定向目标（`*_REDIRECT` 时用） |
+| `routePathPrefix` | string | SITE 转发前替换已匹配 path 前缀；空则保持原行为 |
 | `override` | bool | 覆盖同名 / override |
 
-`targetType` 枚举（来自 `portal_entry.go`）/ enums:
+`routeType` 枚举 / enums:
 
-- `SITE` - 路由到 site（`siteName`）/ route to a site
-- `PERMANENT_REDIRECT` - 永久重定向（`redirectionPattern`）/ permanent redirect
-- `TEMPORARY_REDIRECT` - 临时重定向 / temporary redirect
+- `SITE` - 路由到 site（`routeSiteName`）
+- `PERMANENT_REDIRECT` / `TEMPORARY_REDIRECT` - 用 `routeRedirectionPattern`
+
+当前字段是扁平 `match*` / `route*`。旧 YAML（`scheme`/`host`/`port`/`pathPrefix`/`targetType`/`siteName`/`redirectionPattern`/`targetPath`）仍可导入但会告警；**一条规则不要混用新旧字段名**。Hub 会迁移数据库列。升级 Hub 与 Portal 必须一起做。
+/ Current fields are `match*`/`route*`. Legacy names warn; mixing in one rule is rejected.
 
 ## portalSites - 站点定义（RpcGW / WebGW）
 
@@ -126,7 +129,7 @@ portalSites:
 
 | Field | Type | Note |
 | --- | --- | --- |
-| `name` | string | 站点名（被 `portalRules.siteName` 引用）/ site name |
+| `name` | string | 站点名（被 `portalRules.routeSiteName` 引用）/ site name |
 | `type` | string | `RPCGW` / `WEBGW` |
 | `actorSkelName` | string | 鉴权 Actor 的全限定 Skel 名 / auth Actor Skel name |
 | `actorVia` | string | Actor 通道，如 `client` / Actor via channel |
@@ -169,10 +172,10 @@ portalCerts:
 | `validTo` | time | 过期时间 / valid to |
 | `override` | bool | 覆盖同名 / override |
 
-> ⚠️ 私钥进 seed 等于进 Hub 数据库。pre-1.0 Hub Redis 无密码只读并分发配置（含私钥）--seed 文件、
-> Hub DB、备份都要限制在可信运维边界，不要进版本控制。/ Private keys in seed = in the Hub DB.
-> pre-1.0 Hub Redis is password-free read-only and distributes config (including private keys) -
-> keep seed files, Hub DB, and backups inside the trusted ops boundary; don't commit them.
+> ⚠️ 私钥进 seed 等于进 Hub 数据库。Hub Redis 分发配置（含私钥）。未开后端 mTLS 时内嵌 Redis
+> 仍是开发期明文；开 mTLS 后 Redis 要求 ACL 用户名与客户端证书身份一致。seed 文件、Hub DB、
+> 备份都要限制在可信运维边界，不要进版本控制。/ Private keys in seed = in the Hub DB.
+> Treat Redis access as secret access; don't commit seeds with private keys.
 
 ## override semantics / override 语义
 
@@ -201,17 +204,17 @@ appConfigs:
 
 portalRules:
   - name: web
-    scheme: http
-    port: 7088
-    pathPrefix: /
-    targetType: SITE
-    siteName: web-site
+    matchScheme: http
+    matchPort: 7088
+    matchPathPrefix: /
+    routeType: SITE
+    routeSiteName: web-site
   - name: api
-    scheme: http
-    port: 7088
-    pathPrefix: /api
-    targetType: SITE
-    siteName: rpc-site
+    matchScheme: http
+    matchPort: 7088
+    matchPathPrefix: /api
+    routeType: SITE
+    routeSiteName: rpc-site
 
 portalSites:
   - name: web-site
@@ -232,4 +235,4 @@ portalSites:
 **Do** - 把 seed 当"初始状态导入"而非备份；私钥/凭据不进版本控制；运行期改走 Dashboard/API；还原后
 校验全部配置；用 `override` 区分默认与强制覆盖。
 **Don't** - 把 seed 当持续备份；改了 seed 期望自动回灌 DB；把 Hub Redis/DB 暴露给不可信网络；漏配
-`targetType`/`type`/`cors.mode` 的合法枚举值。
+`routeType`/`type`/`cors.mode` 的合法枚举值；在同一条规则里混用 `scheme` 与 `matchScheme`。

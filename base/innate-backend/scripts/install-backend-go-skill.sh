@@ -130,12 +130,18 @@ install_skill() {
 
 write_installed_readme() {
   local dest="$1" source="$2"
-  cat >"$dest/README.md" <<EOF
-# backend-go (installed)
+  local template="$source/templates/installed-README.md"
+  if [[ -f "$template" ]]; then
+    cp "$template" "$dest/INSTALLED.md"
+  fi
+  cat >"$dest/README.installed.md" <<EOF
+# backend-go (installed copy)
 
 Do not edit this copy. Source: $source
 
 Reinstall: \`base/innate-backend/scripts/install-backend-go-skill.sh all\`
+Runnable samples: \`base/innate-backend/innate-go\`
+New Vine app scaffold: \`templates/vine-standalone/\`
 EOF
 }
 

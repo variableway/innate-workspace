@@ -60,8 +60,9 @@ stores config/registration, distributes snapshots and change events.
 
 ```bash
 vine hub serve \
-  --api-listen 127.0.0.1:7071 \
-  --redis-listen 127.0.0.1:7073 \
+  --control-listen 127.0.0.1:7071 \
+  --admin-listen 127.0.0.1:7075 \
+  --redis-listen 127.0.0.1:7072 \
   --mq-embedded-nats \
   --db-sqlite-file ./hub.sqlite \
   --seed-yaml-file ./seed.yaml \
@@ -71,13 +72,14 @@ vine hub serve \
 - **恰好一个** DB：`--db-sqlite-file` **或** `--db-postgres-url`。/ Exactly one DB.
 - **恰好一个** MQ：`--mq-embedded-nats` **或** `--mq-external-nats-url`（外部 NATS 需开 JetStream）。
   / Exactly one MQ.
-- 默认 API `127.0.0.1:7071`、内嵌 Redis `127.0.0.1:7073`、Dashboard `http://:7099/`。
+- 默认 Control `127.0.0.1:7071`、Admin `127.0.0.1:7075`、内嵌 Redis `127.0.0.1:7072`、
+  Dashboard `http://:7099/`。**Hub 没有 `--api-listen`**（已拆成 control/admin）。
 - `--seed-yaml-file` 导入初始配置/Portal 规则/证书；导入后**数据库是真相源**，seed 不是持续备份。
   / Seed imports initial state; the DB remains source of truth afterward.
 - 注册与 lease：网络模式下 Link 写带 TTL 的注册、靠心跳续约；Hub sweeper 发现过期 lease 时主动注销
   并发删除事件。inproc 模式不用 TTL/心跳/sweeper。/ Network mode: TTL leases + heartbeats + sweeper.
   Inproc: none of these.
-- 环境变量：`VINE_API_LISTEN`/`VINE_REDIS_LISTEN`/`VINE_MQ_*`/`VINE_DB_*`/`VINE_SEED_YAML_FILE`/`VINE_DASHBOARD_URL`。
+- 环境变量：`VINE_CONTROL_LISTEN`/`VINE_ADMIN_LISTEN`/`VINE_REDIS_LISTEN`/`VINE_MQ_*`/`VINE_DB_*`/`VINE_SEED_YAML_FILE`/`VINE_DASHBOARD_URL`/`VINE_MTLS_*`。
 
 ## 4. Link operations / Link 运维
 
@@ -114,7 +116,7 @@ vine portal serve --hub-endpoint http://127.0.0.1:7071
 
 - Portal 的 HTTP/HTTPS 监听地址**不是**固定 flag，由 Hub 里的 Portal entry/rule 配置决定。/ Portal
   listen addresses come from Hub config, not fixed flags.
-- 订阅 Hub Redis：`portal:rule:*`（scheme/port/site）、`portal:site:*`（Rpc/Web 站点与路由）、端点注册、
+- 订阅 Hub Redis：`portal:rule:*`（matchScheme/port/site）、`portal:site:*`（Rpc/Web 站点与路由）、端点注册、
   actor/service/resource schema（Rpc 鉴权）、TLS 证书（SNI）。多数网关变更**免重启**热生效。
   / Watches Hub Redis; most changes hot-reload without restart.
 - Portal rpcgw 行为：校验站点允许目标服务 -> 鉴权/权限检查 -> 服务发现转发；外部客户端**不要**伪造
@@ -228,15 +230,16 @@ curl 'https://api.example.com/invoke/demo.greeting.GreetingService/hello' \
 
 - **鉴权分工**：Kong 在边缘做认证/限流；Vine 的 actor/resource 鉴权仍在 Portal 内做。Web 路径下
   webgw **不信任**客户端提供的 `vweb-actor`/`vweb-initiator`（由 webgw 为后端写）。Rpc 的 `vrpc-actor`
-  声称"由可信入口层创建或转发"--若让 Kong 注入身份，需明确纳入 Vine 信任模型，目前 pre-1.0 没有组件
-  间认证，**更安全的是让 Portal 自有 auth/check 处理身份**，Kong 只透传 `vrpc-trace`/`vrpc-client`。
+  声称"由可信入口层创建或转发"--若让 Kong 注入身份，需明确纳入 Vine 信任模型。后端 mTLS 只覆盖
+  Hub/Link/Portal 组件通道，**不**给 Kong 伪造 `vrpc-actor` 的资格。**更安全的是让 Portal 自有
+  auth/check 处理身份**，Kong 只透传 `vrpc-trace`/`vrpc-client`。
   / Auth split: Kong at edge, Vine actor/resource in Portal. webgw doesn't trust client-supplied
   vweb-actor. Safer to let Portal's own auth/check handle identity; Kong just forwards trace/client.
-- **安全边界（pre-1.0 必读）**：Vine 组件间认证与加密传输仍是 TODO，内嵌 Hub Redis 无密码只读并分发配置
-  （含 Portal TLS 私钥）。Kong 在边缘做 TLS/WAF 是好的，但 Hub API、Hub Redis、Link API、Link ingress、
-  应用监听端口、内嵌 NATS **仍只能**绑回环或可信私网，用防火墙/网络策略强制，不要暴露给不可信网络。
-  / Security boundary: Kong at edge is fine, but all internal Vine endpoints stay on loopback/
-  trusted private network.
+- **安全边界**：后端 mTLS 可选（Hub/Link/Portal 三 flag 齐配；SPIFFE SAN
+  `spiffe://<trust-domain>/vine/daemon/vine.{hub,link,portal}`）。未开 mTLS 时内部端点只绑回环/
+  可信私网。App↔Link 在 mTLS 边界外。Hub Redis 分发配置与 Portal TLS 私钥，不要当通用 Redis 暴露。
+  K8s 用 `deploy/k8s`，镜像 `ghcr.io/yorun-ai`。Kong 在边缘做 TLS/WAF 可以，但不能替代内部边界。
+  / Enable backend mTLS for Hub/Link/Portal; keep App↔Link on the sidecar trust boundary.
 - **TLS**：可在 Kong 终止 TLS（推荐，配合 Portal 的 HTTPS entry），或让 Portal 做 TLS（Portal 从 Hub
   读证书并按 SNI 匹配）。二者选其一，避免重复终止。/ Terminate TLS at Kong (recommended) or at Portal
   (SNI from Hub certs) - not both.

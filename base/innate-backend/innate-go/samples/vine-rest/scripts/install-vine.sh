@@ -3,7 +3,7 @@
 # Usage:
 #   ./scripts/install-vine.sh           # install CLIs from local/GitHub source
 #   ./scripts/install-vine.sh --check   # check only
-#   ./scripts/install-vine.sh --with-go # also ensure Go >= 1.26.5 under INNATE_TOOLS_DIR
+#   ./scripts/install-vine.sh --with-go # also ensure Go >= 1.27.1 under INNATE_TOOLS_DIR
 # Env: INNATE_TOOLS_DIR VINE_REF SKELC_REF VINE_SRC SKELC_SRC
 set -euo pipefail
 
@@ -13,7 +13,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../../scripts/_tools-root.sh
 source "${SCRIPT_DIR}/../../../scripts/_tools-root.sh"
 TOOLS="$(resolve_innate_tools_dir "${REPO_ROOT}")"
-MIN_GO_VER="1.26.5"
+MIN_GO_VER="1.27.1"
 VINE_REF="${VINE_REF:-v0.12.0}"
 SKELC_REF="${SKELC_REF:-v0.12.0}"
 VINE_SRC="${VINE_SRC:-}"
