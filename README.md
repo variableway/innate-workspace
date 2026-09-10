@@ -6,7 +6,7 @@ This workspace is the source of an Innate-related documentation site, covering I
 
 ## Innate Apps
 
-Build Apps for personal use. Each subfolder under [`innate-apps/`](innate-apps/) is a category. Innate-related projects (apps plus [`base/`](base/) templates) are indexed in [`registry-innate.yaml`](registry-innate.yaml), synced by [`scripts/scan-innate-apps.py`](scripts/scan-innate-apps.py).
+Build Apps for personal use. Each subfolder under [`innate-apps/`](innate-apps/) is a category. Companion skills live under [`skills/`](skills/). Innate-related projects (apps, [`base/`](base/) templates, and skills) are indexed in [`registry/apps.yaml`](registry/apps.yaml), synced by [`scripts/scan-innate-apps.py`](scripts/scan-innate-apps.py).
 
 ### Categories
 

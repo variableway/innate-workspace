@@ -2,7 +2,7 @@
 """Shared clone / update logic for scripts/clone-references.py and scripts/clone-innate.py.
 
 - clone-references.py operates on registry.yaml (skills / base / projects / references)
-- clone-innate.py operates on registry-innate.yaml (innate apps + base templates)
+- clone-innate.py operates on registry/apps.yaml (innate apps + base templates + companion skills)
 
 Both call run() here: missing repos are cloned into their declared path, and
 already-existing repos are updated with `git pull` (fetch + fast-forward merge).
@@ -173,5 +173,5 @@ if __name__ == "__main__":
     print(
         "This module is a shared library. "
         "Use scripts/clone-references.py (registry.yaml) "
-        "or scripts/clone-innate.py (registry-innate.yaml)."
+        "or scripts/clone-innate.py (registry/apps.yaml)."
     )

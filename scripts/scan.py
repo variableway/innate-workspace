@@ -17,9 +17,11 @@ Merge rules (source of truth is actual directory contents):
     (--keep-missing keeps it)
   - --regenerate ignores the existing registry and rebuilds entirely from scan results
     (existing desc / name is not preserved, use with caution)
+  - Manually maintained extra fields (kind / template / deploy etc.) are preserved
+        through read -> merge -> write round-trips (see extra_fields())
 
-The innate-apps and base directories have their own registry
-(registry-innate.yaml), handled by scripts/scan-innate-apps.py.
+The innate-apps, base, and skills directories have their own registry
+(registry/apps.yaml), handled by scripts/scan-innate-apps.py.
 """
 
 import argparse
@@ -138,6 +140,33 @@ def read_existing(registry: Path) -> list[dict]:
         ]
 
 
+BASE_FIELDS = ("name", "repo", "path", "desc")
+
+
+def extra_fields(entry: dict) -> dict:
+    """Manually maintained fields beyond name/repo/path/desc (kind, template, ...)."""
+    return {k: v for k, v in entry.items() if k not in BASE_FIELDS}
+
+
+def yaml_scalar(v) -> str:
+    """Quote a scalar only when YAML requires it (leading @ ` & * etc., ':', '#')."""
+    s = str(v)
+    if s and (s[0] in "@`&*!|>%\"'{}[]," or ":" in s or "#" in s or " " in s):
+        return '"' + s.replace("\\", "\\\\").replace('"', '\\"') + '"'
+    return s
+
+
+def write_extra_fields(entry: dict) -> list[str]:
+    """YAML lines for extra fields; lists are emitted in flow style."""
+    lines = []
+    for k, v in extra_fields(entry).items():
+        if isinstance(v, list):
+            lines.append(f"    {k}: [{', '.join(yaml_scalar(i) for i in v)}]")
+        else:
+            lines.append(f"    {k}: {yaml_scalar(v)}")
+    return lines
+
+
 def section_of(path: str) -> str:
     """The section an entry belongs to.
 
@@ -185,6 +214,7 @@ def write_registry(
             lines.append(f"    path: {p['path']}")
             if p.get("desc"):
                 lines.append(f"    desc: {p['desc']}")
+            lines.extend(write_extra_fields(p))
             lines.append("")
 
     # Drop the trailing blank line
@@ -210,6 +240,7 @@ DESC_BY_SECTION = {
     "tooling": "Personal tooling apps",
     "content": "Content-related apps",
     "base": "Innate base/template projects",
+    "skills": "Companion skill collections",
 }
 
 
@@ -244,6 +275,8 @@ def merge(
                 entry["desc"] = old["desc"]
             elif not entry.get("desc"):
                 entry["desc"] = DESC_BY_SECTION.get(section_of(entry["path"]), "")
+            # Preserve manually maintained fields (kind / template / deploy ...) across rewrites
+            entry.update(extra_fields(old))
             if new["path"] != old.get("path"):
                 moved.append(f"{old['path']} -> {new['path']}")
             final.append(entry)

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Recursively scan the innate-apps and base directories, write to registry-innate.yaml.
+"""Recursively scan innate-apps, base, and skills; write to registry/apps.yaml.
 
 Same behavior as scripts/scan.py, but scoped to innate-related directories
-(innate-apps apps and base templates) and their own registry file.
+(innate-apps apps, base templates, and companion skills) and their own registry.
 See scan.py for the full scanning / merge rules.
 """
 
@@ -11,14 +11,14 @@ from pathlib import Path
 
 from scan import ROOT_DIR, run
 
-SCAN_DIRS = ["innate-apps", "base"]
-REGISTRY = ROOT_DIR / "registry-innate.yaml"
+SCAN_DIRS = ["innate-apps", "base", "skills"]
+REGISTRY = ROOT_DIR / "registry" / "apps.yaml"
 DEFAULT_DEPTH = 3
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Recursively scan innate-apps and base, discover git repos and merge them into registry-innate.yaml"
+        description="Recursively scan innate-apps, base, and skills; merge git repos into registry/apps.yaml"
     )
     parser.add_argument(
         "dirs",

@@ -1,0 +1,159 @@
+# Project registry
+# Synced by scripts/scan-innate-apps.py: source of truth is actual dir contents; entries are added/moved/deleted and desc is preserved
+# clone-innate.py reads this file and clones each project into its path field
+
+projects:
+  # === content ===
+  - name: innate-feeds
+    repo: https://github.com/variableway/innate-feeds.git
+    path: innate-apps/content/innate-feeds
+    desc: Content-related apps
+    kind: app
+
+  - name: ai-content-os
+    repo: https://github.com/Maxwelliu/ai-content-os.git
+    path: innate-apps/content/innate-feeds/ai-content-os
+    desc: Content-related apps
+    kind: external
+
+  - name: baoyu-skills
+    repo: https://github.com/JimLiu/baoyu-skills.git
+    path: innate-apps/content/innate-feeds/baoyu-skills
+    desc: Content-related apps
+    kind: external
+
+  - name: innate-wip
+    repo: https://github.com/variableway/innate-wip.git
+    path: innate-apps/content/innate-wip
+    desc: Personal content site (flagship app, plugin dual-track host)
+    kind: app
+    template: app-content
+    templateVersion: v0
+    deploy: [pages, cloudflare]
+
+  - name: innate-keepthem
+    repo: https://github.com/variableway/innate-keepthem.git
+    path: innate-apps/content/innate-keepthem
+    desc: Content-related apps
+    kind: app
+
+  # === tooling ===
+  - name: innate-aiswitcher
+    repo: https://github.com/variableway/innate-aiswitcher.git
+    path: innate-apps/tooling/innate-aiswitcher
+    desc: Personal tooling apps
+    kind: app
+
+  - name: spark-cli
+    repo: https://github.com/variableway/spark-cli.git
+    path: innate-apps/tooling/spark-cli
+    desc: Personal tooling apps (references/registry manager)
+    kind: app
+
+  # === base ===
+  - name: innate-fe-base
+    repo: https://github.com/variableway/innate-fe-templates.git
+    path: base/innate-fe-base
+    desc: Innate 前端基座：@innate 包家族（ui/plugin-sdk）之家，模板上游
+    kind: base
+    publishes: ["@innate/ui"]
+
+  - name: oil-frontend
+    repo: https://github.com/oil-oil/oil-frontend.git
+    path: base/innate-fe-base/suggestion/oil-frontend
+    desc: Innate base/template projects
+    kind: external
+
+  # === skills ===
+  - name: wip-skills
+    repo: https://github.com/qdriven/wip-skills.git
+    path: skills/wip-skills
+    desc: Skill 实验区（含大量外部克隆，默认按 external 处理）
+    kind: external
+
+  - name: HTMLSlide
+    repo: https://github.com/ToseaAI/HTMLSlide.git
+    path: skills/wip-skills/HTMLSlide
+    desc: Innate base/template projects
+
+  - name: llm-fingerprint-detector
+    repo: https://github.com/ToseaAI/llm-fingerprint-detector.git
+    path: skills/wip-skills/llm-fingerprint-detector
+    desc: Innate base/template projects
+
+  - name: minimax-h3-video-factory
+    repo: https://github.com/ht426/minimax-h3-video-factory.git
+    path: skills/wip-skills/minimax-h3-video-factory
+    desc: Innate base/template projects
+
+  - name: skillkit
+    repo: https://github.com/robotbird/skillkit.git
+    path: skills/wip-skills/skillkit
+    desc: Innate base/template projects
+
+  - name: slides-generation-skills
+    repo: https://github.com/ToseaAI/slides-generation-skills.git
+    path: skills/wip-skills/slides-generation-skills
+    desc: Innate base/template projects
+
+  - name: Understand-Anything
+    repo: https://github.com/Egonex-AI/Understand-Anything.git
+    path: skills/wip-skills/wip/Understand-Anything
+    desc: Innate base/template projects
+
+  - name: WebSite-Cloner
+    repo: https://github.com/MainRoute-Core/WebSite-Cloner.git
+    path: skills/wip-skills/wip/WebSite-Cloner
+    desc: Innate base/template projects
+
+  - name: ai-site-cloner
+    repo: https://github.com/Mahanaicoach/ai-site-cloner.git
+    path: skills/wip-skills/wip/ai-site-cloner
+    desc: Innate base/template projects
+
+  - name: ai-website-cloner-template
+    repo: https://github.com/qdriven/ai-website-cloner-template
+    path: skills/wip-skills/wip/ai-website-cloner-template
+    desc: Innate base/template projects
+
+  - name: archify
+    repo: https://github.com/tt-a1i/archify.git
+    path: skills/wip-skills/wip/archify
+    desc: Innate base/template projects
+
+  - name: calco
+    repo: https://github.com/qvacode-ltda/calco.git
+    path: skills/wip-skills/wip/calco
+    desc: Innate base/template projects
+
+  - name: feishu-docx
+    repo: https://github.com/leemysw/feishu-docx.git
+    path: skills/wip-skills/wip/feishu-docx
+    desc: Innate base/template projects
+
+  - name: kill-ai-slop
+    repo: https://github.com/yetone/kill-ai-slop.git
+    path: skills/wip-skills/wip/kill-ai-slop
+    desc: Innate base/template projects
+
+  - name: snapsite
+    repo: https://github.com/onlyv4ns/snapsite.git
+    path: skills/wip-skills/wip/snapsite
+    desc: Innate base/template projects
+
+  - name: true-web-clone
+    repo: https://github.com/SkyNotSilent/true-web-clone.git
+    path: skills/wip-skills/wip/true-web-clone
+    desc: Innate base/template projects
+
+  - name: hallmark
+    repo: https://github.com/Nutlope/hallmark.git
+    path: skills/fe-design-skills/hallmark
+    desc: Companion skill collections
+    kind: external
+
+  # === github-profile ===
+  - name: qdriven
+    repo: https://github.com/qdriven/qdriven.git
+    path: innate-apps/github-profile/qdriven
+    kind: app

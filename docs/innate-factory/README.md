@@ -16,7 +16,7 @@ innate-workspace 改造为 innate-factory（快速创建 APP 的工厂）的执�
 | Sprint | 目标 | 状态 |
 |--------|------|------|
 | [phase-0-clear](./phase-0-clear/) | 清障：.gitignore 审计修复 + 脏树 commit | **done（2026-09-10）** |
-| [phase-1-registry](./phase-1-registry/) | registry 改造：apps.yaml 迁移 + 四张表 | **done（2026-09-09）** |
+| [phase-1-registry](./phase-1-registry/) | registry 改造：apps.yaml 迁移 + 四张表 | **done（2026-09-10）** |
 | [phase-2-base-hub](./phase-2-base-hub/) | base 成共享中心：verdaccio + ui/plugin 收敛 | todo |
 | [phase-3-template](./phase-3-template/) | app-content 模板固化 + 冒烟 CI | todo |
 | [phase-4-scaffold](./phase-4-scaffold/) | new_app 生成器 + 首个真实 app 验收 | todo |
