@@ -14,3 +14,7 @@ inante-workspace项目主要是, 这个innate 相关文档的网站, 包括innat
 1. please update readme file to add current project description in ## Innate Apps section
 2. folders in innate apps represents different categories, please udpate in readme file
 3. please check the registry file to make sure all projects are listed with category name which is actually folder name
+
+## Task 3: Please do cleanup work
+
+1. 完成docs/innate-factory/phase-0-clear 任务并且提交这个任务的改动内容

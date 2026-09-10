@@ -1,0 +1,63 @@
+# Innate private npm registry — Verdaccio configuration template.
+#
+# This file is rendered by scripts/npm-registry.sh, which substitutes the
+# {{...}} placeholders with absolute paths. Do NOT run Verdaccio directly
+# against this template.
+#
+# Runtime layout (default ~/.innate/verdaccio):
+#   config.yaml     rendered configuration (this template + substitutions)
+#   storage/        package tarballs + metadata
+#   htpasswd        auth database (sha1), created by `npm-registry.sh login`
+#   verdaccio.pid   running process id
+#   verdaccio.log   runtime log
+
+storage: {{STORAGE}}
+
+# Simple auth: a pre-provisioned htpasswd user. Local-only private registry —
+# disable self-registration; create/update users via `npm-registry.sh login`.
+auth:
+  htpasswd:
+    file: {{HTPASSWD}}
+    max_users: -1
+    algorithm: sha1
+
+# Upstream registries used as proxies for packages not hosted locally.
+uplinks:
+  npmjs:
+    url: https://registry.npmjs.org/
+  npmmirror:
+    url: https://registry.npmmirror.com/
+
+packages:
+  # Innate private packages. No `proxy`: prevent dependency-confusion attacks and
+  # accidental fallback to a public registry for the private @innate scope.
+  '@innate/*':
+    access: $all
+    publish: $authenticated
+    unpublish: $authenticated
+
+  # Other scoped packages: proxy to the mirror.
+  '@*/*':
+    access: $all
+    publish: $authenticated
+    unpublish: $authenticated
+    proxy: npmmirror
+
+  # Unscoped packages: proxy to the mirror.
+  '**':
+    access: $all
+    publish: $authenticated
+    unpublish: $authenticated
+    proxy: npmmirror
+
+# Local-only private registry: bind loopback by default.
+listen:
+  - 127.0.0.1:4873
+
+server:
+  keepAliveTimeout: 60
+
+log:
+  type: stdout
+  format: pretty
+  level: http

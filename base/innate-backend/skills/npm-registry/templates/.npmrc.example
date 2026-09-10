@@ -1,0 +1,19 @@
+# Point pnpm/npm at the Innate private registry and authenticate.
+#
+# Copy the relevant lines into a project's .npmrc (or ~/.npmrc). The
+# `npm-registry.sh login` command prints the exact `_auth` value for your
+# user/password; or generate it yourself with:
+#     printf "user:password" | base64
+#
+# NOTE: prefer a scoped registry for the private @innate scope so that only
+# @innate/* packages resolve from the private registry, leaving the rest of
+# the dependency graph on your normal registry.
+
+# Option A — everything from the private registry:
+registry=http://localhost:4873/
+//localhost:4873/:_auth=REPLACE_WITH_BASE64_OF_user_colon_password
+always-auth=true
+
+# Option B (recommended) — only @innate/* from the private registry:
+@innate:registry=http://localhost:4873/
+//localhost:4873/:_auth=REPLACE_WITH_BASE64_OF_user_colon_password
