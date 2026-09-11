@@ -176,12 +176,11 @@ tmp/
 *.pyo
 *.pdb
 
-# 大型 JSON / JSONL
+# factory 模板资产必须入库（图标/字体等）；通配忽略在此反向放行
+!factory/templates/**
+
+# 大型 JSON / JSONL（锁文件不忽略：fe-base / 模板需要可复现安装）
 *.jsonl
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
-bun.lock
 
 # === local toolchains / caches (02-be-base) ===
 .tools/
@@ -189,7 +188,8 @@ bun.lock
 **/vine.sqlite-*
 .mimocode/
 .workbuddy/
-.agents/
+**/.agents/*
+!**/.agents/skills/
 references/
 references-skills/
 projects/

@@ -47,7 +47,7 @@ tasks:
       - task run:server
 
   run:vine:
-    desc: Start Vine REST sample (needs Go 1.26.5+ and vine)
+    desc: Start Vine REST sample (use latest Vine; sample go.mod may still pin older)
     dir: samples/vine-rest
     cmds:
       - |

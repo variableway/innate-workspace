@@ -6,7 +6,7 @@ Innate 工作区与项目索引。
 
 ## Innate Apps
 
-为个人使用而构建的应用。每个 [`innate-apps/`](innate-apps/) 下的子文件夹代表一个分类。所有 Innate 相关项目（应用 + [`base/`](base/) 模板）索引在 [`registry-innate.yaml`](registry-innate.yaml) 中，由 [`scripts/scan-innate-apps.py`](scripts/scan-innate-apps.py) 同步。
+为个人使用而构建的应用。每个 [`innate-apps/`](innate-apps/) 下的子文件夹代表一个分类。配套 skill 放在 [`skills/`](skills/)。所有 Innate 相关项目（应用 + [`base/`](base/) 模板 + skills）索引在 [`registry/apps.yaml`](registry/apps.yaml) 中，由 [`scripts/scan-innate-apps.py`](scripts/scan-innate-apps.py) 同步。
 
 ### 分类
 

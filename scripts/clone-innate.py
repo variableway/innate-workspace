@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Clone / update the innate registry (registry-innate.yaml): apps under innate-apps/ plus base templates.
+"""Clone / update the innate registry (registry/apps.yaml): apps, base templates, companion skills.
 
 Same behavior as clone.py, but scoped to innate-related projects. Missing repos
 are cloned into their declared path; already-existing repos are updated with
@@ -11,12 +11,12 @@ from pathlib import Path
 
 from clone import ROOT_DIR, run
 
-DEFAULT_REGISTRY = ROOT_DIR / "registry-innate.yaml"
+DEFAULT_REGISTRY = ROOT_DIR / "registry" / "apps.yaml"
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Batch clone / update innate-related projects declared in registry-innate.yaml"
+        description="Batch clone / update innate-related projects declared in registry/apps.yaml"
     )
     parser.add_argument(
         "--registry",

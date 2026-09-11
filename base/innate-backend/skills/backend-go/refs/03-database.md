@@ -50,40 +50,46 @@ func (*DemoApp) InitComponents(add app.TypeAdder) {
 
 ### Model / 模型
 
-- `rdb.Model`：软删除（带 `DeletedAt gorm.DeletedAt`）。
-- `rdb.DeletableModel`：物理删除（无 `DeletedAt`）。
+- **新模型优先** `rdb.UModel`（软删除）/ `rdb.UDeletableModel`（物理删除）：UUIDv7 主键
+  （PostgreSQL `uuid`，SQLite `TEXT`），空 ID 在 GORM create callback 里自动生成。
+- 已有整数主键表继续用 `rdb.Model` / `rdb.DeletableModel`。不要把旧表改成 UUID 除非任务明确要求迁移。
 
 ```go title="internal/account/user.go"
+import "uuid"
+
 type User struct {
-    rdb.Model // Id, CreatedAt, UpdatedAt, DeletedAt（软删除 / soft delete）
+    rdb.UModel // Id uuid.UUID, CreatedAt, UpdatedAt, DeletedAt
     Name  string `gorm:"column:name"`
     Email string `gorm:"column:email"`
 }
 
 type AuditLog struct {
-    rdb.DeletableModel // Id, CreatedAt, UpdatedAt（物理删除 / physical delete）
+    rdb.UDeletableModel // Id uuid.UUID, CreatedAt, UpdatedAt（物理删除）
     Action string `gorm:"column:action"`
+}
+
+// 仅已有整数表 / integer-key tables only:
+type LegacyRow struct {
+    rdb.Model // Id int, ...
 }
 ```
 
-`rdb.Model` 字段 / fields:
+`rdb.UModel` 字段 / fields:
 
 ```go
-type Model struct {
-    Id        int            `gorm:"column:id;primaryKey"`
+type UModel struct {
+    Id        uuid.UUID      `gorm:"column:id;primaryKey"` // 标准库 uuid，不是 google/uuid
     CreatedAt time.Time      `gorm:"column:created_at;autoCreateTime"`
     UpdatedAt time.Time      `gorm:"column:updated_at;autoUpdateTime"`
     DeletedAt gorm.DeletedAt `gorm:"column:deleted_at"`
 }
 ```
 
-`rdb.Dao[M]` is intentionally limited to Vine's model contract. `M` must embed
-`rdb.Model` or `rdb.DeletableModel`, which supplies the framework's unexported model
-methods and integer `Id`. Existing UUID/string/composite primary-key schemas do not fit
-this contract. Do not change a compatible production schema merely to use the helper;
-use a Domain-owned Gorm store over `*gorm.DB` instead. / `rdb.Dao[M]` 只适用于 Vine
-的整数 ID model contract。UUID/string/composite 主键的既有 schema 不应为了套用 helper
-而改表，应使用 Domain-owned Gorm store 直接操作 `*gorm.DB`。
+`rdb.Dao[M]` 只接受实现 `rdb.ModelConstraint` 的指针（嵌入 `UModel` / `UDeletableModel` /
+`Model` / `DeletableModel`）。已有自定义 UUID/string/复合主键、且不能改成这些基类的 schema，
+不要为了套 helper 改表；用 Domain-owned Gorm store 直接操作 `*gorm.DB`。
+/ `M` must satisfy `ModelConstraint`. Custom PK schemas that cannot embed Vine's bases
+should use a Domain-owned `*gorm.DB` store.
 
 ### Dao / 数据访问对象
 
@@ -122,11 +128,11 @@ func (s *UserService) Create(name, email string) *User {
     return s.Users.Create(&User{Name: name, Email: email})
 }
 
-func (s *UserService) Get(id int) (*User, bool) {
+func (s *UserService) Get(id uuid.UUID) (*User, bool) {
     return s.Users.First("id = ?", id)
 }
 
-func (s *UserService) Rename(id int, newName string) (*User, bool) {
+func (s *UserService) Rename(id uuid.UUID, newName string) (*User, bool) {
     u, ok := s.Users.First("id = ?", id)
     if !ok {
         return nil, false
@@ -269,15 +275,15 @@ func (s *UserService) LoadOrCompute(userID string) *User {
 
 锁默认带 TTL 并在持有期间刷新；`Lock.Context()` 在所有权失效时被取消，长任务必须监听它。
 **坏锁不再属于你，`Unlock` 会 panic**；不要在可能超出租约的工作外层无脑 `defer lock.Unlock()`。
-`IsBroken()` 只是状态观测，不是"后续 `Unlock` 不会 panic"的原子承诺（当前 API 没有
-`TryUnlock`）。若该 fail-fast 契约不可接受，把它隔离到应用自有的恢复边界后，或选有需要语义的锁。
-Redis 锁是协调租约，**不是**fencing token。
+优先用 `TryUnlock()`：本地不可用或已不再持有时返回 `false`，Redis 命令失败仍 fail-fast。
+`IsBroken()` 只是状态观测，不是"后续 `Unlock` 不会 panic"的原子承诺。Redis 锁是协调租约，
+**不是** fencing token。
 
 Locks have a TTL and refresh while held; `Lock.Context()` is canceled when ownership
 becomes invalid. A **broken** lock is no longer owned and `Unlock` panics; don't
-unconditionally `defer lock.Unlock()` around work that can outlive the lease. `IsBroken()`
-is a state observation, not an atomic promise. Redis locks are coordination leases,
-**not** fencing tokens.
+unconditionally `defer lock.Unlock()` around work that can outlive the lease. Prefer
+`TryUnlock()` (`false` if unavailable or no longer owned). Redis locks are coordination
+leases, **not** fencing tokens.
 
 ```go title="internal/account/service.go"
 type UserService struct {
@@ -293,11 +299,9 @@ func (s *UserService) Rebuild(userID string) {
     if !s.rebuildWhileOwned(lock.Context(), userID) { // context 取消时返回 false
         return
     }
-    if lock.IsBroken() {
+    if !lock.TryUnlock() {
         return
     }
-    // 尽力预检：此处之后所有权仍可能变化 / best-effort pre-check; ownership can still change
-    lock.Unlock()
 }
 ```
 
@@ -319,7 +323,8 @@ func (s *UserService) Rebuild(userID string) {
 ## Key tech recap / 关键技术回顾
 
 - ORM: **GORM** (`gorm.io/gorm`)，PostgreSQL 驱动 `gorm.io/driver/postgres`，SQLite 驱动
-  `glebarez/sqlite`。Vine 用 `infra/rdb` 包装为 `Database`/`Dao`/`Model`/`Query`。
+  `glebarez/sqlite`。Vine 用 `infra/rdb` 包装为 `Database`/`Dao`/`UModel`（新表）/`Model`（旧整数表）/`Query`。
 - Redis: **go-redis** (`redis/go-redis/v9`)，Vine 用 `infra/redis` 包装为
-  `Redis`/`Cache[T]`/`Locker`。
-- 序列化: CBOR (`fxamacker/cbor/v2`) + JSON，helper 在 `util/vcode`。
+  `Redis`/`Cache[T]`/`Locker`；动态缓存 `Redis.NewCache[T](ctx, prefix)`，释放锁 `Lock.TryUnlock()`。
+- 序列化: CBOR (`fxamacker/cbor/v2`) + JSON v2，helper 在 `util/vcode`。
+- UUID: 标准库 `"uuid"`，不要 `github.com/google/uuid`。

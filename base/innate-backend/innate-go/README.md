@@ -15,8 +15,15 @@ innate-go/
   internal/cli|metaapi|store/
   desktop/                原 desktop-cargo（CARGO_TARGET_DIR helpers）
   samples/vine-rest/      完整 Vine standalone REST 样例
+  docs/                   演示规划（四模式分析与 TODO）
   Taskfile.yml
 ```
+
+文档：
+
+- 当前如何构建与启动：[`docs/build-and-run.md`](./docs/build-and-run.md)
+- 四模式演示规划：[`docs/demo-four-modes-analysis.md`](./docs/demo-four-modes-analysis.md)
+- 目录索引：[`docs/README.md`](./docs/README.md)
 
 ## 安装 / 构建
 
@@ -54,7 +61,7 @@ curl -s -X POST localhost:8080/api/meta/items \
   -H 'content-type: application/json' \
   -d '{"data":{"name":"widget","price":9}}'
 
-# Vine REST 样例（Go 1.26.5+ / vine / skelc）
+# Vine REST 样例（用最新 Vine；本目录 go.mod 若仍是旧 pin / 本机 replace，以 skill `@latest` 为准）
 task run:vine
 # 或
 innate-go server vine
@@ -73,7 +80,9 @@ innate-go server vine
 
 ## Skill
 
-Go + Vine 开发指南：[`base/innate-backend/skills/backend-go`](../innate-backend/skills/backend-go/)。
+Go + Vine 开发指南：[`base/innate-backend/skills/backend-go`](../skills/backend-go/)。
+
+新建 Vine 应用请拷贝 skill 里的 `templates/vine-standalone/`，再 `go get go.yorun.ai/vine@latest`。不要把本仓库再复制进 skill。
 
 ## 迁移说明
 

@@ -175,7 +175,8 @@ Go idiom, **layered under** Vine-specific conventions (Vine wins on conflict).
 
 ### Pointers / construction / 指针与构造
 
-- **Go 1.26**：创建指针优先 `new(SomeStruct{Field: "v"})`。/ Prefer `new(literal)`.
+- **当前 Go**：创建指针优先 `new(SomeStruct{Field: "v"})`。Vine JSON 用 `encoding/json/v2`，
+  UUID 用标准库 `"uuid"`，不要 `github.com/google/uuid`。/ Prefer `new(literal)`; json/v2; stdlib uuid.
 - 修改状态或结构体较大用指针 receiver；同一类型 receiver 类型保持一致。/ Pointer receivers
   for mutation/large; be consistent.
 

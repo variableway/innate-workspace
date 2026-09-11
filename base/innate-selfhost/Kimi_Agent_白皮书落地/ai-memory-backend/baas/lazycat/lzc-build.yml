@@ -1,5 +1,0 @@
-# 懒猫应用构建配置：定义如何将本目录打包为 .lpk
-pkgout: ./                 # lpk 输出位置
-icon: ./lzc-icon.png       # 应用图标（正方形 PNG，<200KB）
-manifest: ./lzc-manifest.yml
-contentdir: ./content      # 打包进 lpk 的静态内容，运行时挂载至 /lzcapp/pkg/content（deploy.sh 会自动把 ../init.sql 拷进来）

@@ -112,13 +112,14 @@ rules, and TLS are managed through Hub config.
 
 | 服务 / Service | 关键 flag | 环境变量 |
 | --- | --- | --- |
-| `vine hub serve` | `--api-listen` `--redis-listen` `--mq-embedded-nats`/`--mq-external-nats-url` `--db-sqlite-file`/`--db-postgres-url` `--seed-yaml-file` `--dashboard-url` | `VINE_API_LISTEN` `VINE_REDIS_LISTEN` `VINE_MQ_EMBEDDED_NATS` `VINE_MQ_EXTERNAL_NATS_URL` `VINE_DB_SQLITE_FILE` `VINE_DB_POSTGRES_URL` `VINE_SEED_YAML_FILE` `VINE_DASHBOARD_URL` |
-| `vine link serve` | `--api-listen` `--ingress-listen` `--hub-endpoint` | `VINE_API_LISTEN` `VINE_INGRESS_LISTEN` `VINE_HUB_ENDPOINT` |
-| `vine portal serve` | `--hub-endpoint` | `VINE_HUB_ENDPOINT` |
+| `vine hub serve` | `--control-listen` `--admin-listen` `--redis-listen` `--mq-embedded-nats`/`--mq-external-nats-url` `--db-sqlite-file`/`--db-postgres-url` `--seed-yaml-file` `--dashboard-url` `--mtls-ca-file` `--mtls-cert-file` `--mtls-key-file` | `VINE_CONTROL_LISTEN` `VINE_ADMIN_LISTEN` `VINE_REDIS_LISTEN` `VINE_MQ_EMBEDDED_NATS` `VINE_MQ_EXTERNAL_NATS_URL` `VINE_DB_SQLITE_FILE` `VINE_DB_POSTGRES_URL` `VINE_SEED_YAML_FILE` `VINE_DASHBOARD_URL` `VINE_MTLS_*` |
+| `vine link serve` | `--api-listen` `--ingress-listen` `--hub-endpoint` `--mtls-*` | `VINE_API_LISTEN` `VINE_INGRESS_LISTEN` `VINE_HUB_ENDPOINT` `VINE_MTLS_*` |
+| `vine portal serve` | `--hub-endpoint` `--mtls-*` | `VINE_HUB_ENDPOINT` `VINE_MTLS_*` |
 
-Hub 默认 API `127.0.0.1:7071`、内嵌 Redis `127.0.0.1:7073`。Hub 需要**恰好一个** DB
+Hub 默认 Control `127.0.0.1:7071`、Admin `127.0.0.1:7075`、内嵌 Redis `127.0.0.1:7072`。
+**不要**再写已删除的 Hub `--api-listen`。Hub 需要**恰好一个** DB
 （SQLite 或 PostgreSQL）和**恰好一个** MQ（embedded NATS 或 external NATS URL）。
-/ Hub needs exactly one DB and exactly one MQ mode.
+/ Hub `--api-listen` was removed. Use `--control-listen` + `--admin-listen`. Redis default is **7072**.
 
 ## Registration & failure semantics / 注册与故障语义
 
@@ -226,17 +227,20 @@ Portal 默认 Rpc/Web 超时 30s，上限 120s。SSE/WebSocket 无显式超时�
 才关。/ Portal defaults to 30s (max 120s) for Rpc/Web. SSE/WebSocket without explicit
 timeout aren't total-duration-limited; closed after 60s idle.
 
-## Security boundary / 安全边界（pre-1.0 必读）
+## Security boundary / 安全边界
 
-组件间认证与加密传输仍是 TODO。内嵌 Hub Redis 当前允许**无密码只读**连接，并分发运行时配置
-（含 Portal TLS 私钥）。**不要**把 Hub API、Hub Redis、Link API、Link ingress、应用监听端口、
-内嵌 NATS 监听暴露给不可信网络。只绑回环或可信私网，用防火墙/网络策略强制边界。
+后端 mTLS **可选**：Hub、每个 Link、每个 Portal 同时配 `--mtls-ca-file` `--mtls-cert-file`
+`--mtls-key-file` 后，Hub Control/Admin、内嵌 Redis/NATS、Link ingress、组件代理走 mTLS。
+身份是 SPIFFE URI SAN：`spiffe://<trust-domain>/vine/daemon/vine.{hub,link,portal}`；同一部署
+必须同一 trust domain。明文发现端点会被拒绝（不允许降级）。
 
-Auth and encrypted transport between components are still TODO. The embedded Hub Redis
-allows password-free read-only connections and distributes runtime config (including
-Portal TLS private keys). **Do not** expose Hub API, Hub Redis, Link API/ingress,
-app listeners, or embedded NATS to untrusted networks. Bind to loopback or a trusted
-private network only.
+**App↔Link 不在该边界内**（sidecar 同机信任）。省略三 flag 则保留开发期明文；此时内部端点只绑
+回环或可信私网。Hub Redis 仍分发配置与 Portal TLS 私钥，把 Redis 访问当秘密访问。K8s 清单在
+`deploy/k8s`（含可选 mTLS overlay），镜像 `ghcr.io/yorun-ai`。
+
+Backend mTLS is opt-in. App-to-Link stays outside that boundary. Without the flags, bind
+internal listeners to loopback / a trusted private network. Do not expose Hub Redis as a
+general Redis service.
 
 ## Production readiness essentials / 生产就绪要点
 

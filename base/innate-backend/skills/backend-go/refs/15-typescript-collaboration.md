@@ -146,10 +146,10 @@ returns HTTP 200; Portal rpcgw maps `vrpc-status` to HTTP status.
 
 TS 客户端是**外部 vRPC 客户端**，身份与鉴权由 **Portal** 按 site 的 Actor 策略处理--这与 Go 客户端
 一致。**不要**在 TS 侧伪造 `vrpc-actor`/`vrpc-initiator`（webgw 不信任客户端提供的值）。若需要登录态，
-由 Portal 的 auth/check 准入，TS 客户端只发 `vrpc-trace`/`vrpc-client`。pre-1.0 组件间无认证，所以
-Portal 监听器仍要落在可信网络或经边缘网关（如 Kong）保护。/ The TS client is an external vRPC
-client; identity/auth is handled by **Portal** per the site's Actor policy. **Don't forge**
-`vrpc-actor`/`vrpc-initiator` from TS. Let Portal's auth/check admission handle identity.
+由 Portal 的 auth/check 准入，TS 客户端只发 `vrpc-trace`/`vrpc-client`。Portal 公网入口用站点证书；
+Hub/Link/Portal 之间的后端 mTLS 不保护浏览器/Node 客户端。把 Portal 放在可信网络或边缘网关
+（如 Kong）之后。/ The TS client is an external vRPC client; identity/auth is handled by
+**Portal**. **Don't forge** `vrpc-actor`/`vrpc-initiator` from TS.
 
 ## Build & integration / 构建与集成
 

@@ -10,7 +10,7 @@
 #   INNATE_TOOLS_DIR       global tools root (default ~/.tools; see setup-global-tools.sh)
 #   VINE_REF / SKELC_REF   git ref (tag/branch/commit), default v0.12.0
 #   VINE_SRC / SKELC_SRC   existing local checkouts (skip clone)
-#   GOROOT                 optional; otherwise uses INNATE_TOOLS_DIR/go1.26.5 when --with-go
+#   GOROOT                 optional; otherwise uses INNATE_TOOLS_DIR/go1.27.1 when --with-go
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -19,7 +19,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=./_tools-root.sh
 source "${SCRIPT_DIR}/_tools-root.sh"
 TOOLS="$(resolve_innate_tools_dir "${REPO_ROOT}")"
-MIN_GO_VER="1.26.5"
+MIN_GO_VER="1.27.1"
 VINE_REF="${VINE_REF:-v0.12.0}"
 SKELC_REF="${SKELC_REF:-v0.12.0}"
 VINE_SRC="${VINE_SRC:-}"

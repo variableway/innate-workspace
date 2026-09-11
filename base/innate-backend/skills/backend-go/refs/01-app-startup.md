@@ -98,7 +98,9 @@ func separatedMain() {
 
 - `VINE_HUB_ENDPOINT`, `VINE_INGRESS_LISTEN` (linked)
 - `VINE_LINK_ENDPOINT` (separated / `app.NewWithOption`)
-- `VINE_API_LISTEN`, `VINE_REDIS_LISTEN`, etc. (runtime services)
+- Hub：`VINE_CONTROL_LISTEN` `VINE_ADMIN_LISTEN` `VINE_REDIS_LISTEN`（**不是** `VINE_API_LISTEN`）
+- Link：`VINE_API_LISTEN` `VINE_INGRESS_LISTEN`
+- 后端 mTLS：`VINE_MTLS_CA_FILE` `VINE_MTLS_CERT_FILE` `VINE_MTLS_KEY_FILE`（Hub/Link/Portal 一起配）
 
 ### Constructor options / 构造器选项
 

@@ -14,8 +14,8 @@ innate-selfhost/
 │   ├── agent-runtime/     #   AI Agent Runtime（预留）
 │   └── devtools/          #   开发工具链（预留）
 ├── scripts/               # 通用运维脚本
-├── docs/                  # 文档
-├── Kimi_Agent_*/          # 历史调研与实现（保留）
+├── docs/                  # 运维短文（已并入仓库 docs/agent-infra）
+├── Kimi_Agent_*/          # 调研归档（结论见 docs/agent-infra）
 └── references/            # 参考资料
 ```
 
@@ -87,7 +87,13 @@ bash scripts/health-check.sh
 
 ## 文档
 
+Agent 基础设施（Runtime、记忆层、PG 选型、懒猫/Compose）的**合并手册**：仓库根目录 [docs/agent-infra](../../docs/agent-infra/)。
+
+本目录 `docs/` 仍是面向运维的短文，内容已吸收进上述手册的 [deployment.md](../../docs/agent-infra/deployment.md)：
+
 - [架构说明](docs/architecture.md)
 - [懒猫部署指南](docs/lazycat-deployment.md)
 - [网络拓扑](docs/network.md)
 - [常见问题](docs/troubleshooting.md)
+
+`Kimi_Agent_*` 三个目录是调研归档，勿当现行规范。

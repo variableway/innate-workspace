@@ -18,19 +18,20 @@ description: |
 # backend-go — Innate Go Backend (Vine)
 
 > **Innate 落点**: `base/innate-backend/skills/backend-go`  
-> 样例项目: `base/innate-backend/innate-go/samples/vine-rest`（Vine REST）、`base/innate-backend/innate-go`（通用 meta CRUD）  
+> 可运行样例（已合并，不要在 skill 里再放一份）: `base/innate-backend/innate-go`（meta CRUD）、`…/innate-go/samples/vine-rest`（完整 Vine REST）  
+> 新建 Vine 应用请拷贝: [`templates/vine-standalone/`](./templates/vine-standalone/)；目录说明见 [`templates/README.md`](./templates/README.md)  
 > 上游参考仍保留: `base/references/backend/golang-backend/vine-skill`
 
 # Vine Development / Vine 开发指南
 
-> **Source of truth / 事实来源**: framework source at `../vine` (or `go.yorun.ai/vine`),
-> public docs at `../vine-site/docs`. This skill distills them; when they disagree,
-> the source and the current `next` docs win. / 本 skill 是对源码与官方文档的提炼；
-> 二者有冲突时以源码与当前 `next` 文档为准。
+> **Baseline / 基线**: 始终用**当前最新** Vine（`go get go.yorun.ai/vine@latest`）。Go 与 skelc
+> 跟这次拉到的 Vine 走（其 `go.mod` 的 `go` 指令、`skel.MinSkelcVersion()`），skill **不写死版本号**。
 >
-> Vine is pre-1.0 (`v0.9.0+`). Minor releases may break public APIs; pin exact Vine +
-> skelc revisions for releases. / Vine 1.0 前 API 仍在稳定，次版本可能有破坏性变更，
-> 生产构建需固定 Vine + skelc 的精确 revision。
+> **Source of truth / 事实来源**: 当前 Vine 源码与公开 facade。`vine-site` 可能落后；冲突时以
+> 源码为准，不要按过期教程里的旧 tag / 旧 API 示例写。
+>
+> Vine is pre-1.0. Minor releases may break public APIs; upgrade Vine + skelc + generated
+> contracts together. / Vine 1.0 前次版本可能破坏 API；升级时三者与生成代码一起更新。
 
 ## When to use this skill / 何时使用
 
@@ -105,10 +106,11 @@ failure isolation. / 先 standalone → 需要共享配置/发现/外部入口�
 
 | You need to… / 你需要… | Use / 用 | Ref |
 | --- | --- | --- |
+| 从零搭第一个 Vine standalone 应用 | 拷贝 [`templates/vine-standalone/`](./templates/vine-standalone/)，不要拷 `innate-go/samples/vine-rest` | [04-standalone-dev](./refs/04-standalone-dev.md) |
 | 让应用可启动、配好组件/模块 | `app.Application` + `InitComponents`/`InitModules` | [01-app-startup](./refs/01-app-startup.md) |
 | 把业务逻辑挂到生命周期上 | `app.BaseModule` + `BeforeAppStart`/`AfterAppStart`/`BeforeAppStop`/`AfterAppStop` | [02-modules](./refs/02-modules.md) |
-| 持久化关系模型 | `rdb.Database` + `rdb.Dao[*M]`（ORM = GORM） | [03-database](./refs/03-database.md) |
-| 缓存 / 分布式锁 | `redis.Redis` + `redis.Cache[T]` / `redis.Locker` | [03-database](./refs/03-database.md#redis) |
+| 持久化关系模型 | `rdb.Database` + `rdb.Dao[*M]`；**新模型用 `rdb.UModel` / `rdb.UDeletableModel`**（整数 `rdb.Model` 只留给已有表） | [03-database](./refs/03-database.md) |
+| 缓存 / 分布式锁 | `redis.Redis` + `redis.Cache[T]` / `redis.Locker`；动态缓存用 `(*redis.Redis).NewCache[T](ctx, prefix)`；释放锁优先 `Lock.TryUnlock()` | [03-database](./refs/03-database.md#redis) |
 | 调另一个应用并拿结果 | `.skel` `service` + skelc 生成 client，`app.ServicerEnabled` | [05-microservice-dev](./refs/05-microservice-dev.md) |
 | 暴露 HTTP 路由 | `.skel` `web` + `app.WebberEnabled` + `Routes` | [01-app-startup](./refs/01-app-startup.md#web) |
 | 发布"已发生的事实" | `.skel` `event` + `EventerEnabled` + listener | [06-app-composition](./refs/06-app-composition.md) |
@@ -118,15 +120,16 @@ failure isolation. / 先 standalone → 需要共享配置/发现/外部入口�
 | 加跨切面逻辑（鉴权/日志/埋点） | `core/ctr` filter / `ServicerInitFilters` 等 | [02-modules](./refs/02-modules.md#filters) |
 | 返回稳定错误码 | `core/ex`（`ex.New(ex.NotFound, ...)` / panic-recover） | [02-modules](./refs/02-modules.md#errors) |
 | 构造期断言不变量 / 前置条件 | `util/vpre`（`Check*` / `Must*`，panic fail-fast） | [07-code-style](./refs/07-code-style.md) |
-| 集成测试 | `app/testkit.StartStandalone` + `NewClient` | [04-standalone-dev](./refs/04-standalone-dev.md#testkit) |
+| 集成测试 | `app/testkit.StartStandalone` + `execution.NewClient[C]()`（**不是**包级 `testkit.NewClient`） | [04-standalone-dev](./refs/04-standalone-dev.md#testkit) |
 | 给 vine 应用加 flag / env / 子命令 | 构造器内置 `appcli.Handle` + `app.With(&MyFlag{})` | [08-cli-application](./refs/08-cli-application.md) |
 | 覆盖 handler/Event/Task + 配置覆盖 | `app/testkit`（一包一 runtime、子测试共享） | [09-testing](./refs/09-testing.md) |
 | 日志 / 脱敏 / trace / 超时 | `core/logger` + `core/redact` + `core/meta` | [10-observability](./refs/10-observability.md) |
-| 运维 Hub/Link/Portal 或接 Kong | `vine hub/link/portal serve`；Kong 在 Portal 前 | [11-hub-link-portal-ops](./refs/11-hub-link-portal-ops.md) |
-| 加新中间件 / 判断能否扩展 | module 包客户端；infra/MQ/能力/配置源封闭 | [12-extensibility](./refs/12-extensibility.md) |
+| 运维 Hub/Link/Portal、开后端 mTLS、或接 Kong | `vine hub/link/portal serve`；Hub 用 `--control-listen`/`--admin-listen`；mTLS 三 flag 齐配；Kong 在 Portal 前 | [11-hub-link-portal-ops](./refs/11-hub-link-portal-ops.md) |
+| 加新中间件 / 判断能否扩展 | 普通 Component/Module/filter/DI 开放；`app.ManagedComponent` 家族、MQ、能力、配置源封闭 | [12-extensibility](./refs/12-extensibility.md) |
+| 自建托管组件（对标 Redis/RDB 生命周期） | 嵌入 `app.BaseManagedComponent[M]` + 实现 `app.ComponentManager` | [12-extensibility](./refs/12-extensibility.md) |
 | 设计 Domain/package 布局或精简过度分层 | 最小可行 Domain + 必要叶子 adapters；接口按需 | [16-pragmatic-domain-layout](./refs/16-pragmatic-domain-layout.md) |
 | 写 / 改 `.skel` 契约 | `domain/data/service/event/task/web/config/actor` 速查 | [13-skel-syntax](./refs/13-skel-syntax.md) |
-| 写 seed YAML / Portal 规则 | `appConfigs`/`portalRules`/`portalSites`/`portalCerts` | [14-seed-portal-yaml](./refs/14-seed-portal-yaml.md) |
+| 写 seed YAML / Portal 规则 | `appConfigs`/`portalRules`/`portalSites`/`portalCerts`；规则用扁平 `match*` / `route*`（不要新写 `scheme`/`targetType`/`siteName`） | [14-seed-portal-yaml](./refs/14-seed-portal-yaml.md) |
 | TS 客户端调 Vine | `skelc gen ts` + `@yorun-ai/vrpc` + 生成 client | [15-typescript-collaboration](./refs/15-typescript-collaboration.md) |
 
 ### 2c. DI scope decision / 依赖注入作用域选择
@@ -148,6 +151,25 @@ failure isolation. / 先 standalone → 需要共享配置/发现/外部入口�
 > handler 的 Rpc client/DAO 跟随当前请求，注入到 module 的则绑定应用根 context。
 > 不要把执行作用域依赖挪出它所在的 handler。
 
+### 2d. Current APIs — do not regress / 用当前 API，禁止回退
+
+Emit **current** Vine symbols (`@latest`). The left column is stale.
+
+| Do not write / 不要写 | Write instead / 应写 |
+| --- | --- |
+| 写死旧 Vine/Go/skelc tag | `go get go.yorun.ai/vine@latest`；Go / skelc 跟该 Vine；然后 `skelc gen go` |
+| `testkit.NewClient[C](execution)` / `testkit.NewClientER` | `execution.NewClient[C]()` / `execution.NewClientER[C]()` |
+| 包级 `redis.NewCache` | `redisComponent.NewCache[T](ctx, keyPrefix)` |
+| `github.com/google/uuid` / `skel.NewUUID` 传 google UUID | 标准库 `"uuid"`；`skel.NewUUID` 收 `uuid.UUID` |
+| 新表嵌入 `rdb.Model` / `rdb.DeletableModel` | 新模型 `rdb.UModel` / `rdb.UDeletableModel`（UUIDv7）；旧整数表可继续 `rdb.Model` |
+| Hub `--api-listen` / Redis `:7073` / `VINE_API_LISTEN`（Hub） | `--control-listen 127.0.0.1:7071`、`--admin-listen 127.0.0.1:7075`、`--redis-listen 127.0.0.1:7072`；Link 仍用 `--api-listen` |
+| `portalRules` 的 `scheme` / `pathPrefix` / `targetType` / `siteName` | `matchScheme` / `matchPathPrefix` / `routeType` / `routeSiteName`（可加 `routePathPrefix`）；一条规则不要混用新旧字段 |
+| `FrameworkComponent` | `app.ManagedComponent` + `BaseManagedComponent[M]` |
+| `examples/k8s` | `deploy/k8s`（含 stable overlay 与可选 mTLS） |
+| 手写 `MethodSpec` 却无 clone hook | 用当前 `MinSkelcVersion()` 以上的 skelc 生成；有参数/结果就必须 `CloneArguments` / `CloneResult` |
+| `encoding/json` v1 | Vine JSON 用 `encoding/json/v2` + `encoding/json/jsontext` |
+| 依赖配置字符串保留首尾空白 | 默认 trim；要保留空白加 `skel:"noTrim"`（`sensitive` 不会保空白） |
+
 ---
 
 ## 3. Code style essentials / 代码风格要点
@@ -155,8 +177,10 @@ failure isolation. / 先 standalone → 需要共享配置/发现/外部入口�
 > Distilled from `../vine/AGENTS.md`. Apply when writing Vine application code.
 > / 提炼自 vine 框架 AGENTS.md。
 
-- **Go 1.26 syntax.** Prefer `new(SomeStruct{Field: "value"})` for pointer creation.
-  / 指针创建优先用 `new(复合字面量)`。
+- **Current Go syntax (whatever Vine's `go.mod` requires).** Prefer `new(SomeStruct{Field: "value"})` for pointer creation.
+  Use stdlib `uuid` and current stdlib helpers. JSON in Vine uses `encoding/json/v2` — do not
+  reintroduce v1 `encoding/json`.
+  / 指针创建优先 `new(复合字面量)`；UUID 用标准库；Vine JSON 走 json/v2。
 - **Naming**: use `kind` when `type` would shadow; `Rpc` not `RPC` in identifiers.
   / `type` 会遮蔽时用 `kind`；标识符里用 `Rpc` 而非 `RPC`。
 - **Unexported production types** are prefixed with `_` (e.g. `_App`, `_Config`).
@@ -201,31 +225,39 @@ failure isolation. / 先 standalone → 需要共享配置/发现/外部入口�
 
 | Concern / 关注点 | Technology / 技术 | Vine package / 包 |
 | --- | --- | --- |
-| ORM / 关系数据库 | **GORM** (`gorm.io/gorm`) + `gorm.io/driver/postgres` + `glebarez/sqlite` | `infra/rdb`（`rdb.Database`、`rdb.Dao[*M]`、`rdb.Model`） |
-| Redis 客户端 / 缓存 / 锁 | **go-redis** (`redis/go-redis/v9`) | `infra/redis`（`redis.Cache[T]`、`redis.Locker`） |
+| ORM / 关系数据库 | **GORM** + `gorm.io/driver/postgres` + `glebarez/sqlite` | `infra/rdb`（`rdb.Database`、`rdb.Dao[*M]`、**`rdb.UModel`（新表）**、`rdb.Model`（旧整数表）） |
+| Redis 客户端 / 缓存 / 锁 | **go-redis** (`redis/go-redis/v9`) | `infra/redis`（`Redis.NewCache[T]`、`redis.Locker`、`Lock.TryUnlock`） |
 | Web / HTTP | **Gin** (`gin-gonic/gin`) + h2c | `core/web` |
 | 消息 / Event / Task 流 | **NATS JetStream** (`nats-io/nats.go`) | `core/event`、`core/task` |
-| 序列化 | **CBOR** (`fxamacker/cbor/v2`) + JSON + YAML | `util/vcode` |
-| 契约 / 代码生成 | **Skel** 语言 + **skelc** 编译器（生成 Go / TypeScript） | `core/skel` |
-| 依赖注入 | Vine 自带类型级 DI（`inject:""`、scopes、factories） | `core/di` |
+| 序列化 | **CBOR** (`fxamacker/cbor/v2`) + **JSON v2** (`encoding/json/v2`) + YAML | `util/vcode`（默认 nil slice/map 编码为 `[]`/`{}`） |
+| UUID | 标准库 `"uuid"`（UUIDv7 主键） | `rdb.UModel`、`skel.NewUUID` |
+| 契约 / 代码生成 | **Skel** + 当前 Vine 要求的 **skelc**（`skel.MinSkelcVersion()`） | `core/skel` |
+| 依赖注入 | Vine 自带类型级 DI（`inject:""`、scopes、factories、`WithDependencies`） | `core/di` |
 | 执行管线 / 过滤器 | 洋葱模型 filter chain | `core/ctr` |
 | 上下文 / 链路 / 身份 | `meta.Context`（trace/initiator/actor） | `core/meta` |
 | 错误模型 | `ex.Error`（Code/Type/Category） | `core/ex` |
-| 配置 | Hub 托管，`eternal`/`instant` 两种生命周期 | `core/conf` |
-| CLI | `urfave/cli/v3` | `cmd/vine` |
+| 配置 | Hub 托管，`eternal`/`instant`；字符串默认 trim，`skel:"noTrim"` 退出 | `core/conf` |
+| CLI | `urfave/cli/v3` | `cmd/vine`（Hub：`--control-listen` / `--admin-listen`） |
 | Cron 调度 | `robfig/cron/v3`（标准 5 字段） | `core/task` |
+| 后端 mTLS | 可选 SPIFFE X.509-SVID（Hub/Link/Portal `--mtls-*-file`） | 部署 flag，应用代码不要 import `internal/` |
 | 校验 / decimal | `go-playground/validator`、`shopspring/decimal` | (indirect) |
 | 工具库 | `util/vcode` `vfile` `vmap` `vmath` `vnet` `vpre` `vslice` `vstring` | `util/*` |
 
 **Deployment processes / 部署进程**: `vine hub serve` / `vine link serve` /
 `vine portal serve` (from `cmd/vine`). Hub needs exactly one DB (SQLite **or**
 PostgreSQL) and exactly one MQ (embedded NATS **or** external NATS URL).
+K8s manifests live in `deploy/k8s` (not `examples/k8s`). Images:
+`ghcr.io/yorun-ai`. Backend mTLS is opt-in: set `--mtls-ca-file` + `--mtls-cert-file`
++ `--mtls-key-file` on Hub, every Link, and every Portal together.
 
 ---
 
 ## 5. Reference modules / 参考模块
 
 Read these on demand (each is bilingual, code is shared): / 按需阅读（均为双语，代码共享）:
+
+- [templates/README.md](./templates/README.md) — 脚手架 vs `innate-go` 落点；新建 Vine 应用拷 [`templates/vine-standalone`](./templates/vine-standalone/)。
+  Scaffold vs runnable samples; copy vine-standalone for a new app.
 
 - [refs/01-app-startup.md](./refs/01-app-startup.md) — 应用规范、能力声明、三种构造器、生命周期。
   App spec, capability declarations, three constructors, lifecycle.
@@ -247,8 +279,8 @@ Read these on demand (each is bilingual, code is shared): / 按需阅读（均�
   testkit API, config overrides, Event/Task idempotency tests, test rules and scripts.
 - [refs/10-observability.md](./refs/10-observability.md) - 结构化日志、按名配级别、脱敏、trace/身份/超时传播。
   Structured logging, named levels, redaction, trace/identity/timeout propagation.
-- [refs/11-hub-link-portal-ops.md](./refs/11-hub-link-portal-ops.md) - Hub/Link/Portal 运维（standalone 优先）+ Kong 接入。
-  Hub/Link/Portal ops (standalone first) + Kong integration.
+- [refs/11-hub-link-portal-ops.md](./refs/11-hub-link-portal-ops.md) - Hub/Link/Portal 运维（standalone 优先）+ 可选后端 mTLS + Kong 接入。
+  Hub/Link/Portal ops (standalone first) + opt-in backend mTLS + Kong integration.
 - [refs/12-extensibility.md](./refs/12-extensibility.md) - 可扩展性边界：开放（module/filter/DI）vs 封闭（infra/MQ/能力/配置源）+ 加新中间件范式。
   Extensibility boundary: open (module/filter/DI) vs closed (infra/MQ/capability/config) + adding-middleware pattern.
 - [refs/13-skel-syntax.md](./refs/13-skel-syntax.md) - Skel 契约语法速查（非规范，权威见 skel.yorun.ai）。
@@ -275,9 +307,16 @@ Read these on demand (each is bilingual, code is shared): / 按需阅读（均�
    make side effects idempotent. / Event/Task 至少一次投递，契约里放稳定业务 ID，副作用做幂等。
 6. **Don't move execution-scoped deps across executions** (clients, DAOs, caches,
    lockers, config pointers). / 不要把执行作用域依赖挪出当前执行。
-7. **Internal endpoints stay on loopback / trusted private network** — auth and
-   transport encryption are still TODO pre-1.0. / 内部端点只绑回环或可信私网。
-8. **Pin Go + Vine + skelc together**; regenerate contracts on upgrade. / 三者一起固定，升级时重新生成契约。
+7. **Backend mTLS is opt-in** (`--mtls-ca-file`/`--mtls-cert-file`/`--mtls-key-file` on
+   Hub, every Link, and every Portal). Identities are SPIFFE URI SANs
+   `spiffe://<trust-domain>/vine/daemon/vine.{hub,link,portal}`. App↔Link is **outside**
+   this boundary (sidecar trust). Without the three flags, plaintext remains; bind
+   internal listeners to loopback / a trusted private network. Hub Redis still carries
+   config and Portal TLS keys — treat Redis access as secret access.
+   / 后端 mTLS 可选；未开时内部端点只绑回环或可信私网。App↔Link 不在该边界内。
+8. **Always use the latest Vine**; take Go and skelc from that module (`go.mod`,
+   `skel.MinSkelcVersion()`). Regenerate contracts when Vine or skelc changes.
+   / 始终用最新 Vine；Go/skelc 跟它走；升级时重新生成契约。
 9. **Every abstraction must justify its complexity cost.** DDD is ownership and
    dependency direction, not a target number of layers. / 每个抽象都要证明其复杂度成本；
    DDD 是业务归属和依赖方向，不是目录层数目标。
