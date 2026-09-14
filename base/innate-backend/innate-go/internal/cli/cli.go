@@ -15,6 +15,8 @@ func Main(args []string) int {
 		return 0
 	}
 	switch args[0] {
+	case "domain":
+		return cmdDomain(args[1:])
 	case "desktop-app", "desktop":
 		return cmdDesktopApp(args[1:])
 	case "server":
@@ -36,14 +38,54 @@ func printRootHelp() {
 	fmt.Print(`innate-go — backend + desktop toolchain CLI
 
 Usage:
+  innate-go domain list
+  innate-go domain meta [serve]  Run the Meta domain (Vine standalone REST)
   innate-go desktop-app config   Tauri/desktop shared Cargo config (default)
   innate-go desktop-app status|env|path|explain|clean|run
-  innate-go server [meta]        Start meta CRUD REST (SQLite)
+  innate-go server [meta]        Start Meta Domain (Vine standalone + SQLite)
+  innate-go server sidecar        Start lightweight loopback HTTP adapter
   innate-go server vine          Start Vine REST sample (via task)
   innate-go version
 
 Build with Taskfile: task build / task run:server / task run:vine
 `)
+}
+
+// cmdDomain exposes domains as first-class CLI units. Each domain may later
+// grow its own migrations, adapters, and runners without coupling them to
+// infrastructure commands.
+func cmdDomain(args []string) int {
+	if len(args) == 0 || args[0] == "help" || args[0] == "-h" || args[0] == "--help" {
+		fmt.Print(`innate-go domain — run a business domain
+
+Usage:
+  innate-go domain list
+  innate-go domain meta [serve] [flags]
+
+The meta domain is also available as: innate-go server meta
+`)
+		return 0
+	}
+	if args[0] == "list" {
+		fmt.Println("meta\tMeta CRUD domain (Vine standalone REST)")
+		return 0
+	}
+	switch args[0] {
+	case "meta":
+		if len(args) > 1 && args[1] != "serve" {
+			fmt.Fprintf(os.Stderr, "unknown domain meta command: %s\n", args[1])
+			return 2
+		}
+		if len(args) > 1 {
+			args = args[2:]
+		} else {
+			args = args[1:]
+		}
+		return runMetaServer(args)
+	default:
+		fmt.Fprintf(os.Stderr, "unknown domain: %s\n", args[0])
+		return 2
+	}
 }
 
 func rootDir() string {

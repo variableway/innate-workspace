@@ -35,6 +35,10 @@ task install        # → $(go env GOPATH)/bin/innate-go
 
 ## CLI
 
+### Self-host AI Infra（规划）
+
+Self-host 控制面将落在 `innate-go selfhost`，统一管理开发态 Compose、PostgreSQL/pgvector、MemoryStore、InsForge/Supabase adapter 与 Bun/Deno runner。任务拆解见 [`../tasks/selfhost-orchestrator/`](../tasks/selfhost-orchestrator/)。当前 `server` 与 `desktop-app` 命令保持兼容。
+
 ### Desktop / Tauri（共享编译缓存）
 
 ```bash
@@ -50,11 +54,16 @@ innate-go desktop-app clean --yes
 ### Server
 
 ```bash
-# Meta CRUD（默认 server；SQLite：raw_requests + items + notes）
+# Meta Domain（默认 server；Vine standalone + SQLite：raw_requests + items + notes）
 task run:server
 # 或
 innate-go server
 innate-go server meta -addr 127.0.0.1:8080 -db ./data/meta.sqlite
+# 一等 Domain 入口（与 server meta 等价）
+innate-go domain list
+innate-go domain meta serve -addr 127.0.0.1:8080 -db ./data/meta.sqlite
+# 极简桌面 sidecar（只启动 net/http，仍复用 Meta Domain）
+innate-go server sidecar -addr 127.0.0.1:8080 -db ./data/meta.sqlite
 
 curl -s localhost:8080/healthz
 curl -s -X POST localhost:8080/api/meta/items \
@@ -89,5 +98,5 @@ Go + Vine 开发指南：[`base/innate-backend/skills/backend-go`](../skills/bac
 | 旧路径 | 新位置 |
 |--------|--------|
 | `base/desktop-cargo/` | `desktop/` + `innate-go desktop-app …` |
-| `projects/tooling/innate-meta-api` | 本模块 `internal/metaapi` + `innate-go server` |
+| `projects/tooling/innate-meta-api` | 本模块 `internal/meta` + `internal/metaapp` + `innate-go domain meta` |
 | `projects/tooling/innate-vine-rest` | `samples/vine-rest/` |

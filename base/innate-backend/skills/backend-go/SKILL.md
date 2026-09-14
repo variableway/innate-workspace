@@ -24,8 +24,10 @@ description: |
 
 # Vine Development / Vine 开发指南
 
-> **Baseline / 基线**: 始终用**当前最新** Vine（`go get go.yorun.ai/vine@latest`）。Go 与 skelc
-> 跟这次拉到的 Vine 走（其 `go.mod` 的 `go` 指令、`skel.MinSkelcVersion()`），skill **不写死版本号**。
+> **Baseline / 基线**: 始终用**当前最新** Vine（`go get go.yorun.ai/vine@latest`）和与之匹配的最新
+> skelc（`go install go.yorun.ai/skelc/cmd/skelc@latest`）。Go 跟 Vine `go.mod` 的要求走，
+> `skelc` 必须满足运行时 `skel.MinSkelcVersion()`。本文和仓库中的示例版本可能落后于最新发布，
+> 每次开发前都要执行版本检查并按当前 API 更新示例；不要把示例代码当成永久不变的 API。
 >
 > **Source of truth / 事实来源**: 当前 Vine 源码与公开 facade。`vine-site` 可能落后；冲突时以
 > 源码为准，不要按过期教程里的旧 tag / 旧 API 示例写。
@@ -45,6 +47,18 @@ description: |
   / You are authoring Skel contracts or regenerating code.
 - 你在排查生命周期顺序、依赖注入作用域、context 传播、Event/Task 幂等性问题。
   / You are diagnosing lifecycle, DI scope, context propagation, or Event/Task idempotency.
+
+### Boundary with ordinary Go tools / 与普通 Go 工具的边界
+
+普通 CLI、Docker/Compose orchestrator、桌面 sidecar 和裸 `net/http` 服务不会因为放在
+`innate-backend` 目录就自动成为 Vine 应用。只有需要 Vine 生命周期、DI、Rpc/Web/Event/Task
+或 Hub/Link/Portal 语义时才套用本 Skill；这类工具可以继续使用标准库和普通 Go 测试。
+
+### Version gate / 版本门禁
+
+生成代码必须满足运行时 `skel.MinSkelcVersion()`。升级 Vine 时同时升级 skelc 并重新生成
+`skeled/`；不得提交低于最低版本的生成结果、旧的 compiler version 或开发机绝对路径
+`replace`。CI 应执行 `skelc check`、生成一致性检查、`gofmt`、`go vet ./...` 和 `go test ./...`。
 
 **Do not use for / 不适用于**: Skel 语言与 `skelc` 命令的权威参考（见
 `https://skel.yorun.ai/docs/`）；Vine 框架内部 `internal/` 包的实现细节（应用代码

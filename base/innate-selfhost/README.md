@@ -30,6 +30,9 @@ cd innate-selfhost
 
 # 初始化环境（检查依赖、创建 .env）
 bash scripts/setup.sh
+
+# 只启动开发态依赖（Postgres + pgvector；queue profile 可选）
+bash scripts/deploy.sh dev
 ```
 
 ### 2. 部署服务
@@ -60,7 +63,7 @@ bash scripts/health-check.sh
 | **baas** | ✅ 就绪 | 8000, 3000, 5432, 9000 | 自托管 BaaS：ParadeDB + PostgREST + Authentik + MinIO + Mercure |
 | **memweave** | ✅ 就绪 | — | SQLite 本地优先 AI 记忆层，FTS5 + 向量混合搜索 |
 | **ollama** | 🔲 预留 | 11434 | 本地 LLM 推理（Ollama） |
-| **agent-runtime** | 🔲 预留 | — | AI Agent Runtime（Tauri 基座） |
+| **agent-runtime** | 🧪 开发骨架 | — | Bun 主控 + Deno 受限执行器 |
 | **devtools** | 🔲 预留 | — | GitLab, Harbor, CI/CD 等 |
 
 ## 技术栈
@@ -73,6 +76,8 @@ bash scripts/health-check.sh
 - **实时推送**: Mercure (SSE)
 - **REST API**: PostgREST
 - **网关**: Traefik / 懒猫内置网关
+
+开发态推荐方案与分阶段路线见 [selfhost-dev-plan.md](../../docs/agent-infra/selfhost-dev-plan.md)。开发态 Compose 不启动 Authentik、Mercure、MinIO、Traefik；它们保留在 `services/baas`，用于需要完整私有云后端时的集成测试。
 
 ## 懒猫私有云支持
 

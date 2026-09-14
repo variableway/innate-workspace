@@ -1,5 +1,6 @@
 /bin/
-/skeled/
+# Generated code is kept in the example so a fresh checkout builds without
+# requiring skelc first. Regenerate it from ./skel; never hand-edit skeled/.
 *.sqlite
 *.sqlite-*
 .DS_Store

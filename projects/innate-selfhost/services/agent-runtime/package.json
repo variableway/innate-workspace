@@ -1,0 +1,9 @@
+{
+  "name": "innate-agent-runtime-dev",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "run": "bun src/main.ts",
+    "demo": "bun src/main.ts sandbox/demo.ts"
+  }
+}

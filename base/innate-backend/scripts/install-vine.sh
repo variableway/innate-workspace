@@ -8,7 +8,8 @@
 #
 # Env:
 #   INNATE_TOOLS_DIR       global tools root (default ~/.tools; see setup-global-tools.sh)
-#   VINE_REF / SKELC_REF   git ref (tag/branch/commit), default v0.12.0
+#   VINE_REF / SKELC_REF   git ref (tag/branch/commit), current defaults v0.15.7 / v0.19.0;
+#                          update these together when a newer release is published
 #   VINE_SRC / SKELC_SRC   existing local checkouts (skip clone)
 #   GOROOT                 optional; otherwise uses INNATE_TOOLS_DIR/go1.27.1 when --with-go
 set -euo pipefail
@@ -20,8 +21,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/_tools-root.sh"
 TOOLS="$(resolve_innate_tools_dir "${REPO_ROOT}")"
 MIN_GO_VER="1.27.1"
-VINE_REF="${VINE_REF:-v0.12.0}"
-SKELC_REF="${SKELC_REF:-v0.12.0}"
+VINE_REF="${VINE_REF:-v0.15.7}"
+SKELC_REF="${SKELC_REF:-v0.19.0}"
 VINE_SRC="${VINE_SRC:-}"
 SKELC_SRC="${SKELC_SRC:-}"
 
@@ -118,22 +119,21 @@ resolve_src() {
     echo "${hint}"
     return
   fi
-  # Common sibling checkout
-  if [[ -d "${HOME}/workspace/yorun-ai/${name}/.git" ]]; then
-    echo "${HOME}/workspace/yorun-ai/${name}"
-    return
-  fi
-  if [[ -d "/Users/patrick/workspace/yorun-ai/${name}/.git" ]]; then
-    echo "/Users/patrick/workspace/yorun-ai/${name}"
-    return
-  fi
+  # Use a sibling checkout only when it is already exactly on the requested tag.
+  # A local checkout on an older tag must not silently defeat the latest-version gate.
+  for candidate in "${HOME}/workspace/yorun-ai/${name}" "/Users/patrick/workspace/yorun-ai/${name}"; do
+    if [[ -d "${candidate}/.git" ]] && [[ "$(git -C "${candidate}" describe --tags --exact-match 2>/dev/null || true)" == "${ref}" ]]; then
+      echo "${candidate}"
+      return
+    fi
+  done
   if [[ -d "${cache}/.git" ]]; then
     git -C "${cache}" fetch --tags --quiet || true
     git -C "${cache}" checkout --quiet "${ref}" || git -C "${cache}" checkout --quiet -B "pin-${ref}" "${ref}"
     echo "${cache}"
     return
   fi
-  log "Cloning ${repo}@${ref} -> ${cache}"
+  log "Cloning ${repo}@${ref} -> ${cache}" >&2
   mkdir -p "$(dirname "${cache}")"
   git clone --depth 1 --branch "${ref}" "https://github.com/yorun-ai/${name}.git" "${cache}" 2>/dev/null \
     || git clone "https://github.com/yorun-ai/${name}.git" "${cache}"

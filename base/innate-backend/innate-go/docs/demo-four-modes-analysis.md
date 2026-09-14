@@ -23,14 +23,16 @@
 原则：**同一套 meta CRUD 业务，四种装配。**  
 桌面 sidecar 不起 Hub / Link / Portal；进网格才 `standalone` / bundle。
 
-建议命令面（尚未实现）：
+当前命令面与后续演示命令：
 
 ```text
 innate-go demo cli          # 工具链说明 + exec Vine 二进制 version/help
 innate-go demo sidecar      # 裸 HTTP，READY 行
 innate-go demo standalone   # 一个 Vine App
 innate-go demo bundle       # NewBundled(meta, storefront)
-innate-go server meta       # 可与 sidecar 合并或作为 sidecar 别名
+innate-go domain meta serve # Meta Domain 的 Vine standalone
+innate-go server meta       # 上述 Domain 入口的兼容别名
+innate-go server sidecar    # 复用同一 Domain 的轻量 loopback adapter
 ```
 
 ---
@@ -110,7 +112,8 @@ Storefront **禁止** import Meta 的 Dao；只注入生成的 `MetaStoreService
 
 ```text
 现在
-  innate-go CLI ──┬── server meta     裸 HTTP + sqlite3
+  innate-go CLI ──┬── domain meta      Vine standalone + SQLite domain store
+                  ├── server meta      兼容别名（同一 Meta Domain）
                   ├── server vine     exec vine-rest（旧 Vine、内存 REST）
                   └── desktop-app     Cargo 缓存
 
@@ -131,12 +134,12 @@ Storefront **禁止** import Meta 的 Dao；只注入生成的 `MetaStoreService
 
 | 有 | 缺 |
 | --- | --- |
-| `cmd/innate-go`：`desktop-app` / `server meta` / `server vine` / `version` / `help` | 不是 Vine `appcli`；无 `demo cli/standalone/bundle` |
+| `cmd/innate-go`：`domain meta` / `desktop-app` / `server meta` / `server vine` / `version` / `help` | CLI 将 Domain 作为一等运行单元；Vine App 仍由 `standalone` 启动 |
 | `cmd/server` = 强行 `server meta` | sidecar READY / token / 端口 0 |
 | Task：`build` / `run:server` / `run:vine` / `desktop:*` | `server vine` 是 `exec task`，不是进程内装配 |
 | `desktop/` Cargo 共享 target | 与 sidecar 进程无关 |
 
-### 4.2 Vine standalone — 最小样例，偏旧
+### 4.2 Vine standalone — 最小样例
 
 | 有 | 缺 |
 | --- | --- |
@@ -144,7 +147,7 @@ Storefront **禁止** import Meta 的 Dao；只注入生成的 `MetaStoreService
 | Skel：`web RestDemoWeb` + `data Item` + `actor via openapi` | 无 service / config / event / task / resource / permission / auth |
 | `seed.yaml`：WEBGW + `matchPort: 18081` | 单 App；无 bundle |
 | skill 模板 Hello Module | 无 Rpc/Web |
-| | `samples/vine-rest/go.mod`：**pin Vine v0.12.0** + **本机 `replace`** |
+| | `samples/vine-rest` 已升级 Vine **v0.15.7**、skelc **v0.19.0**；后续发布仍需按最新版本复核 |
 
 ### 4.3 Sidecar — 只有手跑的 meta HTTP
 
@@ -186,7 +189,7 @@ Storefront **禁止** import Meta 的 Dao；只注入生成的 `MetaStoreService
 - [ ] Bundle：第二 App（如 `innate.demo.storefront`）Web 只调 `MetaStoreServiceClient`；`standalone.NewBundled(meta, storefront)`。
 - [ ] CLI：`innate-go demo cli|sidecar|standalone|bundle`；Vine flag 原样传给子进程（`--log-level`、`--db-sqlite-file`、`--seed-yaml-file`）。
 - [ ] README（或本文 §6）一条验收路径。
-- [ ] `samples/vine-rest`：去掉本机 `replace`，`go get go.yorun.ai/vine@latest`；或并入 demo 并标 deprecated。
+- [x] `samples/vine-rest`：去掉本机 `replace`，升级 Vine v0.15.7、skelc v0.19.0 并重新生成 `skeled/`；后续发布仍需按最新版本复核。
 
 ### P1 — Vine 用法装进 standalone + bundle
 
@@ -279,5 +282,5 @@ innate-go demo bundle
 
 ## 9. 现状一句话
 
-**现在：工具链 CLI + 裸 meta HTTP + 一个偏旧的 Vine REST 单 App。**  
-**要演示四种模式：共享 meta 内核 + Skel Rpc/Web + sidecar 握手 + standalone + NewBundled，再把 Auth / 权限 / config / Event 挂在 Vine 那两条上。**
+**现在：Domain service + Vine standalone Web + 可选的裸 HTTP sidecar adapter + 最新 Vine REST 单 App。**  
+**后续四模式工作仍围绕共享 Meta Domain 内核，补齐 Skel Rpc/Web、sidecar 握手和 NewBundled，再把 Auth / 权限 / config / Event 挂在 Vine 那两条上。**

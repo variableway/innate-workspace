@@ -8,6 +8,7 @@
 |------|------|
 | [`innate-go/`](innate-go/) | Go 基础工程（CLI `innate-go`、meta CRUD、Vine REST sample、desktop Cargo helpers） |
 | [`skills/backend-go/`](skills/backend-go/) | Go + Vine 开发 Skill |
+| [`tasks/selfhost-orchestrator/`](tasks/selfhost-orchestrator/) | 用 innate-go 管理 self-host AI Infra 的路线与任务 |
 | [`scripts/install-vine.sh`](scripts/install-vine.sh) | 安装 `vine` / `skelc` |
 
 上游参考：`base/references/backend/golang-backend/vine-skill`。

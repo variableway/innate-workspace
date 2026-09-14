@@ -1,0 +1,9 @@
+domain innate.meta
+
+pub actor ClientActor {
+    via openapi {}
+}
+
+web MetaCrudWeb {
+    for ClientActor via openapi
+}

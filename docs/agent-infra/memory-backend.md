@@ -6,6 +6,8 @@
 
 **SQLite 是端侧记忆真相源，PostgreSQL 是中枢系统记录。** 不是「选了 PG 就不能 local-first」。
 
+开发态进一步约束：InsForge 与 Supabase 都视为可替换的 BaaS adapter，不作为两套并行后端。二者可以共用一个 PostgreSQL **实例**，但应使用独立 database/role；不要共用同一个 database 或让两个 BaaS 同时管理同一张表。稳定契约是 `MemoryStore` 的 `write/search/forget`，共享投影落在 PostgreSQL + pgvector 的 `memory_items`；memweave SQLite/Markdown 负责离线真相源。详见 [selfhost-dev-plan.md](./selfhost-dev-plan.md)。
+
 ## 端侧：memweave
 
 实现目录：`base/innate-selfhost/services/memweave`（白皮书工程副本在 `Kimi_Agent_白皮书落地/ai-memory-backend/memweave`）。

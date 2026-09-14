@@ -1,5 +1,6 @@
 # Environment files (contain secrets)
 .env
+*.env.dev
 !.env.example
 !*.env.example
 

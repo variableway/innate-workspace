@@ -8,6 +8,7 @@
 | Runtime + Plugin（MCP / Tauri / 安全） | [runtime-plugins.md](./runtime-plugins.md) |
 | 记忆层 + PG 后端选型 | [memory-backend.md](./memory-backend.md) |
 | 部署（Compose / 懒猫 / 排障） | [deployment.md](./deployment.md) |
+| 开发态 self-host 方案与路线图 | [selfhost-dev-plan.md](./selfhost-dev-plan.md) |
 | 生态对照（Harness / Top 方案） | [ecosystem.md](./ecosystem.md) |
 
 ## 从哪里合并

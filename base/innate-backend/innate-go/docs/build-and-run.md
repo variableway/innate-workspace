@@ -1,6 +1,6 @@
 # 构建与启动（当前实现）
 
-本文描述 **仓库里已经能跑的** 构建和启动方式，不包含规划中的 `demo sidecar|standalone|bundle`。
+本文描述 **仓库里已经能跑的** 构建和启动方式。Meta 已经是 Vine standalone Domain；桌面极简 sidecar 仍可复用同一个 Domain service。
 
 工作目录一律：
 
@@ -16,7 +16,7 @@ cd base/innate-backend/innate-go
 
 | 产物 | 入口 | 作用 |
 | --- | --- | --- |
-| `bin/innate-go` | `./cmd/innate-go` | 统一 CLI（desktop-app / server meta / server vine） |
+| `bin/innate-go` | `./cmd/innate-go` | 统一 CLI（domain / desktop-app / server） |
 | `bin/server` | `./cmd/server` | 快捷入口，等价 `innate-go server meta …` |
 | `bin/vine-rest` | `samples/vine-rest/cmd/rest-demo` | Vine standalone REST 样例（`task run:vine` 写出） |
 
@@ -30,7 +30,7 @@ cd base/innate-backend/innate-go
 | 要跑什么 | 需要 |
 | --- | --- |
 | 构建 CLI / meta server | Go 1.27.1+ |
-| `innate-go server meta` | PATH 上有 **`sqlite3` CLI**（store 通过它访问 SQLite，不是纯 Go driver） |
+| `innate-go server meta` / `server sidecar` | PATH 上有 **`sqlite3` CLI**（store 通过它访问 SQLite，不是纯 Go driver） |
 | `task run:vine` | Go；可选 `skelc`（有则先 `check`/`gen go`）；Vine 依赖见该样例 `go.mod` |
 | 安装 Vine / skelc CLI | `./scripts/install-vine.sh` 或 `samples/vine-rest/scripts/install-vine.sh` |
 
@@ -75,9 +75,17 @@ go build -o bin/server ./cmd/server
 
 ---
 
-## 启动 1：meta CRUD（默认 server）
+## 启动 1：Meta Domain（默认 server，Vine standalone）
 
-裸 `net/http` + SQLite，**不**启动 Vine Hub / Link / Portal。
+`standalone.NewWithOption` 会在进程内启动 Vine Hub、Portal、Link 和 Meta App；业务数据库与 Vine Hub 数据库分开。Vine Portal entry 当前按 seed 的端口监听 `0.0.0.0:<port>`，`-addr` 的主机部分仅用于 CLI 展示，因此桌面需要严格 loopback 时应使用轻量 HTTP adapter。
+
+严格 loopback 的桌面 sidecar：
+
+```bash
+./bin/innate-go server sidecar -addr 127.0.0.1:8080 -db ./data/meta.sqlite
+```
+
+该入口只启动 `net/http`，通过 `internal/metaapi` 调用同一个 `internal/meta` Domain service。
 
 ```bash
 task run:server
@@ -86,6 +94,7 @@ task run:meta
 # 或先 build 再：
 ./bin/innate-go server
 ./bin/innate-go server meta -addr 127.0.0.1:8080 -db ./data/meta.sqlite
+./bin/innate-go domain meta serve -addr 127.0.0.1:8080 -db ./data/meta.sqlite
 ./bin/server -addr 127.0.0.1:8080 -db ./data/meta.sqlite
 ```
 
@@ -153,7 +162,7 @@ curl -s http://127.0.0.1:18081/items
 
 该二进制是 Vine 应用，另支持 Vine 自带参数（与 `innate-go help` 不是同一套），例如 `version`、`--log-level`、`--db-sqlite-file`、`--seed-yaml-file`。样例 `main` 里已写死 `SQLiteFile: "./vine.sqlite"`、`SeedYAMLFile: "./seed.yaml"`（显式 Option 优先于 flag）。
 
-注意：`samples/vine-rest/go.mod` 可能仍 pin 旧 Vine 或带本机 `replace`。要以当前 Vine 为准时，在该目录 `go get go.yorun.ai/vine@latest`（skill 约定不写死版本）。
+说明：当前样例已升级到 Vine v0.15.7、skelc v0.19.0 并移除本机 `replace`。Vine/skelc 会持续发布新版本；开发前仍应按 Skill 执行 `go get go.yorun.ai/vine@latest`、`go install go.yorun.ai/skelc/cmd/skelc@latest`，重新生成并运行测试。
 
 ---
 

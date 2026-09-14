@@ -1,5 +1,7 @@
 # vine-rest
 
+当前基线：Vine v0.15.7、skelc v0.19.0。示例代码可能随 Vine 发布落后；使用前按 `backend-go` Skill 的最新版本门禁重新生成 `skeled/`。
+
 Vine **standalone REST** 样例（归属 `base/innate-backend/innate-go`）。
 
 ```bash

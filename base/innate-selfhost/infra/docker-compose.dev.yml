@@ -1,0 +1,49 @@
+# 开发态 AI Infra：只启动本地开发需要的有状态依赖。
+# 运行前：docker network create selfhost-net（scripts/setup.sh 会自动创建）
+
+services:
+  postgres:
+    image: pgvector/pgvector:0.8.0-pg16
+    container_name: selfhost-dev-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DEV_POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${DEV_POSTGRES_PASSWORD:-dev-only-change-me}
+      POSTGRES_DB: ${DEV_POSTGRES_DB:-agent_dev}
+    ports:
+      - "${DEV_POSTGRES_PORT:-55432}:5432"
+    volumes:
+      - dev-pgdata:/var/lib/postgresql/data
+      - ./dev-init.sql:/docker-entrypoint-initdb.d/001-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks: [selfhost-net]
+
+  valkey:
+    image: valkey/valkey:8.0-alpine
+    container_name: selfhost-dev-valkey
+    restart: unless-stopped
+    profiles: [queue]
+    ports:
+      - "${DEV_VALKEY_PORT:-56379}:6379"
+    volumes:
+      - dev-valkeydata:/data
+    command: ["valkey-server", "--save", "60", "1", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks: [selfhost-net]
+
+volumes:
+  dev-pgdata:
+  dev-valkeydata:
+
+networks:
+  selfhost-net:
+    external: true
+    name: selfhost-net

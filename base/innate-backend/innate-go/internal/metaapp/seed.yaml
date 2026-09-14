@@ -1,0 +1,15 @@
+portalSites:
+  - name: meta-crud-web
+    type: WEBGW
+    actorSkelName: innate.meta.ClientActor
+    actorVia: openapi
+    cors:
+      mode: DISABLED
+    webName: innate.meta.MetaCrudWeb
+
+portalRules:
+  - name: meta-crud-http
+    matchScheme: http
+    matchPort: 8080
+    routeType: SITE
+    routeSiteName: meta-crud-web

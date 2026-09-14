@@ -8,16 +8,18 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/variableway/innate-go/internal/meta"
 	"github.com/variableway/innate-go/internal/store"
 )
 
 type Server struct {
-	Store *store.Store
-	Mux   *http.ServeMux
+	Store   *store.Store
+	Service *meta.Service
+	Mux     *http.ServeMux
 }
 
 func New(st *store.Store) *Server {
-	s := &Server{Store: st, Mux: http.NewServeMux()}
+	s := &Server{Store: st, Service: meta.NewService(st), Mux: http.NewServeMux()}
 	s.Mux.HandleFunc("GET /healthz", s.handleHealth)
 	s.Mux.HandleFunc("GET /api/meta/raw-requests", s.handleListRaw)
 	s.Mux.HandleFunc("GET /api/meta/{table}", s.handleList)
@@ -37,7 +39,7 @@ func (s *Server) Handler() http.Handler {
 		body, _ := io.ReadAll(io.LimitReader(r.Body, 1<<20))
 		_ = r.Body.Close()
 		r.Body = io.NopCloser(strings.NewReader(string(body)))
-		_ = s.Store.LogRequest(r.Context(), r.Method, r.URL.Path, table, body)
+		_ = s.Service.LogRequest(r.Context(), r.Method, r.URL.Path, table, body)
 		s.Mux.ServeHTTP(w, r)
 	})
 }
@@ -47,7 +49,7 @@ func (s *Server) handleHealth(w http.ResponseWriter, _ *http.Request) {
 }
 
 func (s *Server) handleListRaw(w http.ResponseWriter, r *http.Request) {
-	rows, err := s.Store.ListRawRequests(r.Context(), 100)
+	rows, err := s.Service.ListRawRequests(r.Context(), 100)
 	if err != nil {
 		writeErr(w, http.StatusInternalServerError, err.Error())
 		return
@@ -56,12 +58,8 @@ func (s *Server) handleListRaw(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleList(w http.ResponseWriter, r *http.Request) {
-	table, err := store.NormalizeTable(r.PathValue("table"))
-	if err != nil {
-		writeErr(w, http.StatusBadRequest, err.Error())
-		return
-	}
-	rows, err := s.Store.List(r.Context(), table)
+	table := r.PathValue("table")
+	rows, err := s.Service.List(r.Context(), table)
 	if err != nil {
 		writeErr(w, http.StatusInternalServerError, err.Error())
 		return
@@ -75,11 +73,7 @@ type writeBody struct {
 }
 
 func (s *Server) handleCreate(w http.ResponseWriter, r *http.Request) {
-	table, err := store.NormalizeTable(r.PathValue("table"))
-	if err != nil {
-		writeErr(w, http.StatusBadRequest, err.Error())
-		return
-	}
+	table := r.PathValue("table")
 	var req writeBody
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		writeErr(w, http.StatusBadRequest, "invalid JSON body")
@@ -93,7 +87,7 @@ func (s *Server) handleCreate(w http.ResponseWriter, r *http.Request) {
 	if id == "" {
 		id = newID()
 	}
-	rec, err := s.Store.Create(r.Context(), table, id, req.Data)
+	rec, err := s.Service.Create(r.Context(), table, id, req.Data)
 	if err != nil {
 		writeErr(w, http.StatusConflict, err.Error())
 		return
@@ -102,12 +96,8 @@ func (s *Server) handleCreate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleGet(w http.ResponseWriter, r *http.Request) {
-	table, err := store.NormalizeTable(r.PathValue("table"))
-	if err != nil {
-		writeErr(w, http.StatusBadRequest, err.Error())
-		return
-	}
-	rec, err := s.Store.Get(r.Context(), table, r.PathValue("id"))
+	table := r.PathValue("table")
+	rec, err := s.Service.Get(r.Context(), table, r.PathValue("id"))
 	if err != nil {
 		writeErr(w, http.StatusInternalServerError, err.Error())
 		return
@@ -120,11 +110,7 @@ func (s *Server) handleGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleUpdate(w http.ResponseWriter, r *http.Request) {
-	table, err := store.NormalizeTable(r.PathValue("table"))
-	if err != nil {
-		writeErr(w, http.StatusBadRequest, err.Error())
-		return
-	}
+	table := r.PathValue("table")
 	var req writeBody
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		writeErr(w, http.StatusBadRequest, "invalid JSON body")
@@ -134,7 +120,7 @@ func (s *Server) handleUpdate(w http.ResponseWriter, r *http.Request) {
 		writeErr(w, http.StatusBadRequest, `body must include "data" object`)
 		return
 	}
-	rec, err := s.Store.Update(r.Context(), table, r.PathValue("id"), req.Data)
+	rec, err := s.Service.Update(r.Context(), table, r.PathValue("id"), req.Data)
 	if err != nil {
 		writeErr(w, http.StatusInternalServerError, err.Error())
 		return
@@ -147,12 +133,8 @@ func (s *Server) handleUpdate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleDelete(w http.ResponseWriter, r *http.Request) {
-	table, err := store.NormalizeTable(r.PathValue("table"))
-	if err != nil {
-		writeErr(w, http.StatusBadRequest, err.Error())
-		return
-	}
-	ok, err := s.Store.Delete(r.Context(), table, r.PathValue("id"))
+	table := r.PathValue("table")
+	ok, err := s.Service.Delete(r.Context(), table, r.PathValue("id"))
 	if err != nil {
 		writeErr(w, http.StatusInternalServerError, err.Error())
 		return

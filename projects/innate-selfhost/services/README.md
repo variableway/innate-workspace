@@ -9,7 +9,7 @@
 | [baas](baas/) | ✅ 就绪 | 8000, 3000, 5432, 9000 | 自托管 BaaS 后端（ParadeDB + PostgREST + Authentik + MinIO） |
 | [memweave](memweave/) | ✅ 就绪 | — | SQLite 本地优先 AI 记忆层（Python 库） |
 | [ollama](ollama/) | 🔲 预留 | 11434 | 本地 LLM 推理 |
-| [agent-runtime](agent-runtime/) | 🔲 预留 | — | AI Agent Runtime |
+| [agent-runtime](agent-runtime/) | 🧪 开发骨架 | — | Bun 主控 + Deno 受限执行器 |
 | [devtools](devtools/) | 🔲 预留 | — | 开发工具链 |
 
 ## 部署顺序

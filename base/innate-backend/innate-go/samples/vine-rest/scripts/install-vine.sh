@@ -8,14 +8,14 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-REPO_ROOT="$(cd "${ROOT}/../../../.." && pwd)"
+REPO_ROOT="$(cd "${ROOT}/../../../../../.." && pwd)"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../../../scripts/_tools-root.sh
-source "${SCRIPT_DIR}/../../../scripts/_tools-root.sh"
+source "${SCRIPT_DIR}/../../../../scripts/_tools-root.sh"
 TOOLS="$(resolve_innate_tools_dir "${REPO_ROOT}")"
 MIN_GO_VER="1.27.1"
-VINE_REF="${VINE_REF:-v0.12.0}"
-SKELC_REF="${SKELC_REF:-v0.12.0}"
+VINE_REF="${VINE_REF:-v0.15.7}"
+SKELC_REF="${SKELC_REF:-v0.19.0}"
 VINE_SRC="${VINE_SRC:-}"
 SKELC_SRC="${SKELC_SRC:-}"
 WITH_GO=0
@@ -67,21 +67,25 @@ ensure_go(){
     log "Go $(go_ver)"
   fi
   local gb; gb="$(go env GOPATH)/bin"
-  [[ ":$PATH:" == *":$gb:"* ]] || export PATH="$gb:$PATH"
+  # Prefer the Go toolchain's bin directory so an older system skelc cannot
+  # silently win over the version required by this sample.
+  export PATH="$gb:$PATH"
 }
 
 resolve_src(){
   local name="$1" ref="$2" hint="${3:-}" cache="${TOOLS}/src/${name}"
   if [[ -n "$hint" && -d "$hint" ]]; then echo "$hint"; return; fi
   for p in "$HOME/workspace/yorun-ai/${name}" "/Users/patrick/workspace/yorun-ai/${name}"; do
-    [[ -d "$p/.git" || -f "$p/go.mod" ]] && { echo "$p"; return; }
+    if [[ -d "$p/.git" ]] && [[ "$(git -C "$p" describe --tags --exact-match 2>/dev/null || true)" == "$ref" ]]; then
+      echo "$p"; return
+    fi
   done
   if [[ -d "$cache/.git" ]]; then
     git -C "$cache" fetch --tags --quiet || true
     git -C "$cache" checkout --quiet "$ref" || true
     echo "$cache"; return
   fi
-  log "Cloning yorun-ai/${name}@${ref}"
+  log "Cloning yorun-ai/${name}@${ref}" >&2
   mkdir -p "$(dirname "$cache")"
   if ! git clone --depth 1 --branch "$ref" "https://github.com/yorun-ai/${name}.git" "$cache" 2>/dev/null; then
     git clone "https://github.com/yorun-ai/${name}.git" "$cache"
@@ -97,8 +101,10 @@ if [[ "$MODE" == check ]]; then
   exit 0
 fi
 
-if command -v vine >/dev/null && command -v skelc >/dev/null; then
-  log "vine/skelc already on PATH — skipping rebuild"
+if command -v vine >/dev/null && command -v skelc >/dev/null \
+  && vine version | grep -q "Version    ${VINE_REF}" \
+  && skelc version | grep -q "Version    ${SKELC_REF}"; then
+  log "vine/skelc ${VINE_REF}/${SKELC_REF} already available"
   vine version | head -3
   skelc version | head -3
   exit 0

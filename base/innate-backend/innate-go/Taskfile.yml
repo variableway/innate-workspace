@@ -36,10 +36,16 @@ tasks:
       - go test ./...
 
   run:server:
-    desc: Start meta CRUD REST (default server)
+    desc: Start Meta domain via Vine standalone REST (default server)
     deps: [build]
     cmds:
       - ./{{.BIN}} server meta -addr {{.META_ADDR}} -db {{.META_DB}}
+
+  run:domain-meta:
+    desc: Start Meta domain via first-class domain CLI
+    deps: [build]
+    cmds:
+      - ./{{.BIN}} domain meta serve -addr {{.META_ADDR}} -db {{.META_DB}}
 
   run:meta:
     desc: Alias of run:server
@@ -51,9 +57,11 @@ tasks:
     dir: samples/vine-rest
     cmds:
       - |
-        if command -v skelc >/dev/null; then
-          skelc check --skel-in ./skel
-          skelc gen go --skel-in ./skel --go-out ./skeled
+        SKELC_BIN="$(go env GOPATH)/bin/skelc"
+        if [ ! -x "$SKELC_BIN" ] && command -v skelc >/dev/null; then SKELC_BIN="$(command -v skelc)"; fi
+        if [ -x "$SKELC_BIN" ]; then
+          "$SKELC_BIN" check --skel-in ./skel
+          "$SKELC_BIN" gen go --skel-in ./skel --go-out ./skeled
         fi
       - go build -o ../../bin/vine-rest ./cmd/rest-demo
       - ../../bin/vine-rest
